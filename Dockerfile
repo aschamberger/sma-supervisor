@@ -18,7 +18,7 @@ RUN touch /etc/asound.conf
 # create file to be able to map host asound.state
 RUN touch /var/lib/alsa/asound.state
 	
-RUN pip install pydbus python-dotenv paho-mqtt zeroconf
+RUN pip install pydbus python-dotenv paho-mqtt zeroconf https://github.com/aschamberger/LMSTools/archive/development.tar.gz
 
 COPY supervisor.py /usr/local/bin/supervisor.py
 COPY supervisor.sh /usr/local/bin/supervisor.sh
