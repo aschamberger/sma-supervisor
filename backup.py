@@ -7,8 +7,6 @@ import date
 
 envFile = "/etc/opt/compose/.env"
 
-sshConfig = "/.ssh/config"
-
 backupFiles [
     '/etc/opt/compose/.env',
     '/etc/opt/squeezelite',
