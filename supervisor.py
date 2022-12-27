@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import sys
+import os
 import argparse
 import time
 import paho.mqtt.client as mqtt
@@ -141,7 +142,7 @@ def onConnect(client, userdata, flags, rc):
                 "icon": "mdi:cloud-upload",
                 "cmd_t": "homeassistant/button/sma_remote_backup/do"
             }
-        }
+        },
         {
             'topic': "homeassistant/text/sma_backup_host/config",
             'payload':
@@ -279,12 +280,11 @@ def onConnect(client, userdata, flags, rc):
 
     # publish entities for mqtt discovery and subscribe to their topics
     for entity in entities:
-        client.publish(entity['topic'], payload=entity['payload'], retain=True)
-        if entity['payload']['cmd_t']
-            client.subscribe(entity['payload']['cmd_t'])
-        if entity['payload']['stat_t']
-            client.subscribe(entity['payload']['stat_t'])
-
+        # client.publish(entity['topic'], payload=entity['payload'], retain=True)
+        if entity['payload']['cmd_t']:
+            # client.subscribe(entity['payload']['cmd_t'])
+        if entity['payload']['stat_t']:
+            # client.subscribe(entity['payload']['stat_t'])
 
 #def playFinished(client, userdata, msg):
 #    print(msg.topic)
@@ -317,10 +317,10 @@ if __name__ == '__main__':
         browser = ServiceBrowser(zeroconf, "_mqtt._tcp.local.", handlers=[find_service])
         time.sleep(5)
         zeroconf.close()
-            if not(mqttHost[0])
-                sys.exit('No mqtt broker could be discovered via zeroconf and no config given manually')
-            else:
-                compose.updateConfigValue('MQTT_HOST', ':'.join(mqttHost))
+        if not(mqttHost[0]):
+            sys.exit('No mqtt broker could be discovered via zeroconf and no config given manually')
+        else:
+            compose.updateConfigValue('MQTT_HOST', ':'.join(mqttHost))
 
     if os.getenv('LMS_HOST') is None:
         servers = LMSDiscovery().all()

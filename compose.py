@@ -14,7 +14,7 @@ def up():
         print("error")
 
 def upRecreate():
-    p = subprocess.run( [ 'docker-compose', '-f', composeFile, '--profile', 'on', '--force-recreate', 'up', '-d' ], capture_output=True, text=True )
+    p = subprocess.run( [ 'docker-compose', '-f', composeFile, '--profile', 'on', 'up', '--force-recreate', '-d' ], capture_output=True, text=True )
     if p.returncode == 0: 
         print(p.stdout)
     else:
