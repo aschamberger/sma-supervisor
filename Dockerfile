@@ -20,12 +20,12 @@ RUN touch /var/lib/alsa/asound.state
 	
 RUN pip install pydbus python-dotenv paho-mqtt zeroconf https://github.com/aschamberger/LMSTools/archive/development.tar.gz
 
-#COPY alsa.py /usr/local/bin/alsa.py
-#COPY backup.py /usr/local/bin/backup.py
-#COPY compose.py /usr/local/bin/compose.py
-#COPY dbus.py /usr/local/bin/dbus.py
-#COPY usb.py /usr/local/bin/usb.py
-#COPY supervisor.py /usr/local/bin/supervisor.py
+COPY alsa.py /usr/local/bin/alsa.py
+COPY backup.py /usr/local/bin/backup.py
+COPY compose.py /usr/local/bin/compose.py
+COPY dbus.py /usr/local/bin/dbus.py
+COPY usb.py /usr/local/bin/usb.py
+COPY supervisor.py /usr/local/bin/supervisor.py
 COPY supervisor.sh /usr/local/bin/supervisor.sh
 RUN chmod +x /usr/local/bin/supervisor.sh
 
