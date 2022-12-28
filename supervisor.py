@@ -21,10 +21,10 @@ import compose
 # TODO set eq/scene enables eq if not enabled
 # https://www.home-assistant.io/integrations/update.mqtt
 
-
-
-
 _RUNNING = True
+
+mqttHost[0] = "localhost"
+mqttHost[1] = 1883
 
 eqChannels = ["00. 31 Hz",
     "01. 63 Hz",
