@@ -2,6 +2,13 @@
 
 import subprocess
 
+def alsactlStore():
+    p = subprocess.run( [ 'alsactl', 'store' ], capture_output=True, text=True )
+    if p.returncode == 0:
+        return p.stdout
+    else:
+        print("error")
+
 def getEqualizer(channel):
     device = channel + '_eq'
     # amixer -D ch1_eq scontents
@@ -118,3 +125,14 @@ def extractVolumeSettings(result):
         lines[11].split()[4][1:-1],
         lines[12].split()[4][1:-1]]
     return equal
+
+if __name__ == '__main__':
+    print('alsa control test')
+
+    channel = 'ch1'
+    equal = ['66', '66', '66', '66', '66', '66', '66', '66', '66', '66']
+
+    print(alsa.getEqualizer(channel))
+    print(alsa.setEqualizer(channel, equal))
+    print(alsa.getAllDeviceVolumes())
+    print(alsa.setChannelVolume(channel, '7'))
