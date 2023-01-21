@@ -27,7 +27,7 @@ FROM alpine:3.17
 ENV LANG C.UTF-8
 
 RUN apk update \
-    && apk add --no-cache tini su-exec python3 py3-pip alsa-utils ladspa docker-compose uhubctl openssh sshpass
+    && apk add --no-cache tini su-exec python3 py3-pip alsa-utils ladspa docker-cli-compose uhubctl openssh sshpass
 
 RUN apk add caps --repository=http://dl-cdn.alpinelinux.org/alpine/edge/testing/
 
@@ -57,8 +57,7 @@ RUN pip install \
 COPY alsa.py /usr/local/bin/alsa.py
 COPY backup.py /usr/local/bin/backup.py
 COPY compose.py /usr/local/bin/compose.py
-#COPY dbus.py /usr/local/bin/dbus.py
-#COPY usb.py /usr/local/bin/usb.py
+#COPY power.py /usr/local/bin/dbus.py
 COPY supervisor.py /usr/local/bin/supervisor.py
 COPY supervisor.sh /usr/local/bin/supervisor.sh
 RUN chmod +x /usr/local/bin/supervisor.sh
