@@ -5,6 +5,23 @@ from dotenv.main import get_key, set_key
 
 envFile = "/etc/opt/compose/.env"
 
+# created, restarting, running, removing, paused, exited and dead
+def containerStatus():
+    p = subprocess.run( [ 'docker', 'ps', '--format', '{{.Names}}:{{.State}}' ], capture_output=True, text=True )
+    if p.returncode == 0: 
+        return extractContainerStatus(p.stdout)
+    else:
+        print("error")
+
+def extractContainerStatus(result):
+    lines = result.split("\n")
+    status = {}
+    for line in lines:
+        if len(line) > 0: 
+            line = line.split(':')
+            status[line[0]] = line[1] 
+    return status
+
 def up(profile):
     p = subprocess.run( [ 'docker', 'compose', '--env-file', envFile, '--profile', profile, 'up', '-d' ], capture_output=True, text=True )
     if p.returncode == 0: 

@@ -132,7 +132,7 @@ if __name__ == '__main__':
     channel = 'ch1'
     equal = ['66', '66', '66', '66', '66', '66', '66', '66', '66', '66']
 
-    print(alsa.getEqualizer(channel))
-    print(alsa.setEqualizer(channel, equal))
-    print(alsa.getAllDeviceVolumes())
-    print(alsa.setChannelVolume(channel, '7'))
+    print(getEqualizer(channel))
+    print(setEqualizer(channel, equal))
+    print(getAllDeviceVolumes())
+    print(setChannelVolume(channel, '7'))
