@@ -27,7 +27,7 @@ def extractContainerStatus(result):
 async def up(profile, recreate=False):
     program = [ 'docker', 'compose', '--env-file', envFile, '--profile', profile, 'up', '--detach' ]
     if recreate:
-        programm.append('--force-recreate')
+        program.append('--force-recreate')
     p = await asyncio.create_subprocess_exec(*program, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
     stdout, stderr = await p.communicate()
     if p.returncode == 0:
