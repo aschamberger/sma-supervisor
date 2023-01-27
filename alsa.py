@@ -1,24 +1,28 @@
 #!/usr/bin/python3
 
-import subprocess
+import asyncio
 
-def alsactlStore():
-    p = subprocess.run( [ 'alsactl', 'store' ], capture_output=True, text=True )
+async def alsactlStore():
+    program = [ 'alsactl', 'store' ]
+    p = await asyncio.create_subprocess_exec(*program, stdout=asyncio.subprocess.PIPE)
+    stdout, stderr = await p.communicate()
     if p.returncode == 0:
-        return p.stdout
+        return stdout
     else:
         print("error")
 
-def getEqualizer(channel):
+async def getEqualizer(channel):
     device = channel + '_eq'
     # amixer -D ch1_eq scontents
-    p = subprocess.run( [ 'amixer', '-D', device, 'scontents' ], capture_output=True, text=True )
+    program = [ 'amixer', '-D', device, 'scontents' ]
+    p = await asyncio.create_subprocess_exec(*program, stdout=asyncio.subprocess.PIPE)
+    stdout, stderr = await p.communicate()
     if p.returncode == 0:
-        return extractEqualizerSettings(p.stdout)
+        return extractEqualizerSettings(stdout.decode())
     else:
         print("error")
 
-def setEqualizer(channel, equal):
+async def setEqualizer(channel, equal):
     set_equal = ("sset '00. 31 Hz' " + equal[0] + "\n"
     "sset '01. 63 Hz' " + equal[1] + "\n"
     "sset '02. 125 Hz' " + equal[2] + "\n"
@@ -33,9 +37,11 @@ def setEqualizer(channel, equal):
     device = channel + '_eq'
     # amixer -D ch1_eq sset '00. 31 Hz' 66
     # amixer -D ch1_eq -s < stdin
-    p = subprocess.run( [ 'amixer', '-D', device, '-s' ], input=set_equal, capture_output=True, text=True )
+    program = [ 'amixer', '-D', device, '-s' ]
+    p = await asyncio.create_subprocess_exec(*program, stdout=asyncio.subprocess.PIPE, stdin=asyncio.subprocess.PIPE)
+    stdout, stderr = await p.communicate(set_equal.encode())
     if p.returncode == 0:
-        return extractEqualizerSettings(p.stdout)
+        return extractEqualizerSettings(stdout.decode())
     else:
       print("error")
 
@@ -53,9 +59,9 @@ def extractEqualizerSettings(result):
         lines[68].split()[4][1:-2]]
     return equal
 
-def getAllDeviceVolumes():
-    cardA = getDeviceVolumes("hw:CARD=SND_A")
-    cardB = getDeviceVolumes("hw:CARD=SND_B")
+async def getAllDeviceVolumes():
+    cardA = await getDeviceVolumes("hw:CARD=SND_A")
+    cardB = await getDeviceVolumes("hw:CARD=SND_B")
     volumes = [cardA[0],
         cardA[2],
         cardA[4],
@@ -66,17 +72,19 @@ def getAllDeviceVolumes():
         cardB[6]]
     return volumes
 
-def getDeviceVolumes(device):
+async def getDeviceVolumes(device):
     # amixer -D hw:CARD=SND_A get Speaker
     # -M Use the mapped volume for evaluating the percentage representation like alsamixer, to be more natural for human ear.
     # command returs same result as the 'get' command
-    p = subprocess.run( [ 'amixer', '-D', device, '-M', 'get', 'Speaker' ], capture_output=True, text=True )
+    program = [ 'amixer', '-D', device, '-M', 'get', 'Speaker' ]
+    p = await asyncio.create_subprocess_exec(*program, stdout=asyncio.subprocess.PIPE)
+    stdout, stderr = await p.communicate()
     if p.returncode == 0:
-      return extractVolumeSettings(p.stdout)
+      return extractVolumeSettings(stdout.decode())
     else:
       print("error")
 
-def setChannelVolume(channel, volume):
+async def setChannelVolume(channel, volume):
     # ch1 | ch4 | ch3 | ch2
     # ch5 | ch8 | ch7 | ch6
     volumes = ['0%+', '0%+', '0%+', '0%+', '0%+', '0%+', '0%+', '0%+']
@@ -107,9 +115,11 @@ def setChannelVolume(channel, volume):
     # amixer -D hw:CARD=SND_A -M set Speaker 65%,66%,67%,68%,69%,70%,71%,72%
     # -M Use the mapped volume for evaluating the percentage representation like alsamixer, to be more natural for human ear.
     # command returs same result as the 'get' command
-    p = subprocess.run( [ 'amixer', '-D', device, '-M', 'set', 'Speaker', set_volume ], capture_output=True, text=True )
+    program = [ 'amixer', '-D', device, '-M', 'set', 'Speaker', set_volume ]
+    p = await asyncio.create_subprocess_exec(*program, stdout=asyncio.subprocess.PIPE)
+    stdout, stderr = await p.communicate()
     if p.returncode == 0:
-        volumes = extractVolumeSettings(p.stdout)
+        volumes = extractVolumeSettings(stdout.decode())
         return volumes[returnIndex]
     else:
         print("error")
@@ -126,13 +136,16 @@ def extractVolumeSettings(result):
         lines[12].split()[4][1:-1]]
     return equal
 
-if __name__ == '__main__':
+async def main():
     print('alsa control test')
 
     channel = 'ch1'
     equal = ['66', '66', '66', '66', '66', '66', '66', '66', '66', '66']
 
-    print(getEqualizer(channel))
-    print(setEqualizer(channel, equal))
-    print(getAllDeviceVolumes())
-    print(setChannelVolume(channel, '7'))
+    print(await getEqualizer(channel))
+    print(await setEqualizer(channel, equal))
+    print(await getAllDeviceVolumes())
+    print(await setChannelVolume(channel, '7'))
+
+if __name__ == '__main__':
+    asyncio.run(main())

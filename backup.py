@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-import subprocess
+import asyncio
 from dotenv.main import get_key, set_key
 import os
 import time
@@ -16,22 +16,25 @@ backupFiles = [
 
 backupTempName = "/tmp/backup.tar.gz"
 
-def createLocalBackup():
-    p = subprocess.run( [ 'tar', '-czf', backupTempName ] + backupFiles, capture_output=True, text=True )
-    if p.returncode == 0: 
-        print(p.stdout)
+async def createLocalBackup():
+    program = [ 'tar', '-czf', backupTempName ] + backupFiles
+    p = await asyncio.create_subprocess_exec(*program, stdout=asyncio.subprocess.PIPE)
+    stdout, stderr = await p.communicate()
+    if p.returncode == 0:
+        print(stdout.decode())
     else:
         print("error")
 
-def copyBackupToRemote():
+async def copyBackupToRemote():
     remoteHost = get_key(envFile, "BACKUP_SSH_USER") + "@" + get_key(envFile, "BACKUP_SSH_HOST")
     remoteFileName = get_key(envFile, "BACKUP_REMOTE_DIRECTORY") + "/" + time.strftime("%Y%m%d-%H%M%S") + ".tar.gz"
-    cmd = [ 'sshpass', '-p', get_key(envFile, "BACKUP_SSH_PASSWORD"), 
+    program = [ 'sshpass', '-p', get_key(envFile, "BACKUP_SSH_PASSWORD"),
         'scp', '-o', 'StrictHostKeyChecking=no', '-o', 'UserKnownHostsFile=/dev/null',
         '-P', get_key(envFile, "BACKUP_SSH_PORT"), backupTempName, remoteHost + ":" + remoteFileName]
-    p = subprocess.run( cmd, capture_output=True, text=True )
-    if p.returncode == 0: 
-        print(p.stdout)
+    p = await asyncio.create_subprocess_exec(*program, stdout=asyncio.subprocess.PIPE)
+    stdout, stderr = await p.communicate()
+    if p.returncode == 0:
+        print(stdout.decode())
     else:
         print("error")
 
@@ -40,3 +43,13 @@ def deleteLocalBackup():
         os.remove(backupTempName)
     else:
         print("backup file does not exist")
+
+async def main():
+    print('backup test')
+
+    await createLocalBackup()
+    await copyBackupToRemote()
+    deleteLocalBackup()
+
+if __name__ == '__main__':
+    asyncio.run(main())
