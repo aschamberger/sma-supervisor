@@ -79,6 +79,58 @@ entities = [
         }
     },
     {
+        'topic': "homeassistant/text/sma_lms_host/config",
+        'payload':
+        {
+            "name": "sMA Logitech Media Server Host",
+            "description": "Format: host:port",
+            "device": device,
+            "entity_category": "config",
+            "icon": "mdi:server-network",
+            "cmd_t": "homeassistant/text/sma_lms_host/set",
+            "stat_t": "homeassistant/text/sma_lms_host/state"
+        }
+    },
+    {
+        'topic': "homeassistant/text/sma_mqtt_host/config",
+        'payload':
+        {
+            "name": "sMA MQTT Host",
+            "description": "Format: host:port",
+            "device": device,
+            "entity_category": "config",
+            "icon": "mdi:server-network",
+            "cmd_t": "homeassistant/text/sma_mqtt_host/set",
+            "stat_t": "homeassistant/text/sma_mqtt_host/state"
+        }
+    },
+    {
+        'topic': "homeassistant/text/sma_hass_host/config",
+        'payload':
+        {
+            "name": "sMA Home Assistant Host",
+            "description": "Format: host:port",
+            "device": device,
+            "entity_category": "config",
+            "icon": "mdi:server-network",
+            "cmd_t": "homeassistant/text/sma_hass_host/set",
+            "stat_t": "homeassistant/text/sma_hass_host/state"
+        }
+    },
+    {
+        'topic': "homeassistant/text/sma_hass_bearer/config",
+        'payload':
+        {
+            "name": "sMA Home Assistant bearer token",
+            "device": device,
+            "entity_category": "config",
+            "icon": "mdi:lock",
+            "mode": "password",
+            "cmd_t": "homeassistant/text/sma_hass_bearer/set",
+            "stat_t": "homeassistant/text/sma_hass_bearer/state"
+        }
+    },
+    {
         'topic': "homeassistant/button/sma_remote_backup/config",
         'payload':
         {
@@ -152,31 +204,32 @@ for channel in range(1, 9):
         "via_device": mac
     }
 
-    entities.append({
-        'topic': "homeassistant/binary_sensor/sma_channel_" + channel + "/config",
-        'payload':
+    entities += [
         {
-            "name": "sMA Channel #" + channel + " State",
-            "device": subdevice,
-            "entity_category": "diagnostic",
-            "dev_cla": "running",
-            "stat_t": "homeassistant/binary_sensor/sma_channel_" + channel + "/state"
-        }
-    })
-
-    entities.append({
-        'topic': "homeassistant/text/sma_channel_" + channel + "_player_name/config",
-        'payload':
+            'topic': "homeassistant/binary_sensor/sma_channel_" + channel + "/config",
+            'payload':
+            {
+                "name": "sMA Channel #" + channel + " State",
+                "device": subdevice,
+                "entity_category": "diagnostic",
+                "dev_cla": "running",
+                "stat_t": "homeassistant/binary_sensor/sma_channel_" + channel + "/state"
+            }
+        },
         {
-            "name": "sMA Channel #" + channel + " Player Name",
-            "device": subdevice,
-            "entity_category": "config",
-            "icon": "mdi:rename",
-            "dev_cla": "running",
-            "cmd_t": "homeassistant/text/sma_channel_" + channel + "_player_name/set",
-            "stat_t": "homeassistant/text/sma_channel_" + channel + "_player_name/state"
+            'topic': "homeassistant/text/sma_channel_" + channel + "_player_name/config",
+            'payload':
+            {
+                "name": "sMA Channel #" + channel + " Player Name",
+                "device": subdevice,
+                "entity_category": "config",
+                "icon": "mdi:rename",
+                "dev_cla": "running",
+                "cmd_t": "homeassistant/text/sma_channel_" + channel + "_player_name/set",
+                "stat_t": "homeassistant/text/sma_channel_" + channel + "_player_name/state"
+            }
         }
-    })
+    ]
 
     for eqChannel in eqChannels:
         entities.append({
@@ -208,17 +261,32 @@ for channel in range(1, 9):
             }
         })
 
-    entities.append({
-        'topic': "homeassistant/number/sma_channel_" + channel + "_volume/config",
-        'payload':
+    entities += [
         {
-            "name": "sMA Channel #" + channel + " volume",
-            "device": subdevice,
-            "entity_category": "config",
-            "icon": "mdi:volume-high",
-            "cmd_t": "homeassistant/number/sma_channel_" + channel + "_volume/set",
-            "stat_t": "homeassistant/number/sma_channel_" + channel + "_volume/state",
-            "min": 0,
-            "max": 100
+            'topic': "homeassistant/number/sma_channel_" + channel + "_volume/config",
+            'payload':
+            {
+                "name": "sMA Channel #" + channel + " volume",
+                "device": subdevice,
+                "entity_category": "config",
+                "icon": "mdi:volume-high",
+                "cmd_t": "homeassistant/number/sma_channel_" + channel + "_volume/set",
+                "stat_t": "homeassistant/number/sma_channel_" + channel + "_volume/state",
+                "min": 0,
+                "max": 100
+            }
+        },
+        {
+            'topic': "homeassistant/text/sma_channel_" + channel + "_hass_switch/config",
+            'payload':
+            {
+                "name": "sMA Channel #" + channel + " External Switch",
+                "description": "Home Assistant entity id that should be switched on/off based on player state",
+                "device": subdevice,
+                "entity_category": "config",
+                "icon": "mdi:electric-switch",
+                "cmd_t": "homeassistant/text/sma_channel_" + channel + "_hass_switch/set",
+                "stat_t": "homeassistant/text/sma_channel_" + channel + "_hass_switch/state"
+            }
         }
-    })
+    ]
