@@ -16,7 +16,7 @@ backupFiles = [
 
 backupTempName = "/tmp/backup.tar.gz"
 
-async def createLocalBackup():
+async def create_local_backup():
     program = [ 'tar', '-czf', backupTempName ] + backupFiles
     p = await asyncio.create_subprocess_exec(*program, stdout=asyncio.subprocess.PIPE)
     stdout, stderr = await p.communicate()
@@ -25,7 +25,7 @@ async def createLocalBackup():
     else:
         print("error")
 
-async def copyBackupToRemote():
+async def copy_backup_to_remote():
     remoteHost = get_key(envFile, "BACKUP_SSH_USER") + "@" + get_key(envFile, "BACKUP_SSH_HOST")
     remoteFileName = get_key(envFile, "BACKUP_REMOTE_DIRECTORY") + "/" + time.strftime("%Y%m%d-%H%M%S") + ".tar.gz"
     program = [ 'sshpass', '-p', get_key(envFile, "BACKUP_SSH_PASSWORD"),
@@ -38,7 +38,7 @@ async def copyBackupToRemote():
     else:
         print("error")
 
-def deleteLocalBackup():
+def delete_local_backup():
     if os.path.exists(backupTempName):
         os.remove(backupTempName)
     else:
@@ -47,9 +47,9 @@ def deleteLocalBackup():
 async def main():
     print('backup test')
 
-    await createLocalBackup()
-    await copyBackupToRemote()
-    deleteLocalBackup()
+    await create_local_backup()
+    await copy_backup_to_remote()
+    delete_local_backup()
 
 if __name__ == '__main__':
     asyncio.run(main())

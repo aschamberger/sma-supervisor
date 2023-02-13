@@ -11,7 +11,7 @@ from dbus_fast.aio import MessageBus
 import asyncio
 import json
 
-async def powerOff():
+async def power_off():
     bus = await MessageBus(bus_type=BusType.SYSTEM).connect()
 
     reply = await bus.call(

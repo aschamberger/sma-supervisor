@@ -52,6 +52,7 @@ RUN pip install --no-index --find-links=/wheels dbus-fast \
 
 RUN pip install \
     asyncio-mqtt \
+    pysqueezebox \
     python-dotenv
 
 COPY alsa.py /usr/local/bin/alsa.py
