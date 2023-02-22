@@ -2,6 +2,12 @@
 
 import re, uuid
 
+num_channels = 8
+
+lms_players = []
+for channel in range(1, num_channels+1):
+    lms_players[channel] = f"02:00:00:00:00:{channel:02d}"
+
 eq_channels = ["00. 31 Hz",
     "01. 63 Hz",
     "02. 125 Hz",
@@ -164,7 +170,7 @@ entities = [
 ]
 
 # subdevice: sqeezeMultiAmp Channel #?
-for channel in range(1, 9):
+for channel in range(1, num_channels+1):
     channel = f"{channel:02d}"
     subdevice = {
         "name": f"sqeezeMultiAmp Channel #{channel}",
