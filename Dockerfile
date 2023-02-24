@@ -27,7 +27,7 @@ FROM alpine:3.17
 ENV LANG C.UTF-8
 
 RUN apk update \
-    && apk add --no-cache tini su-exec python3 py3-pip alsa-utils ladspa docker-cli-compose uhubctl openssh sshpass
+    && apk add --no-cache tini su-exec python3 py3-pip alsa-utils ladspa docker-cli-compose openssh sshpass
 
 RUN apk add caps --repository=http://dl-cdn.alpinelinux.org/alpine/edge/testing/
 
