@@ -19,8 +19,7 @@ RUN mkdir /wheels
 
 RUN pip install wheel \
     && pip wheel --wheel-dir=/wheels dbus-fast \
-    && pip wheel --wheel-dir=/wheels zeroconf \
-    && pip wheel --wheel-dir=/wheels https://github.com/aschamberger/LMSTools/archive/development.tar.gz
+    && pip wheel --wheel-dir=/wheels zeroconf
 
 FROM alpine:3.17
 
@@ -47,8 +46,7 @@ COPY --from=builder /usr/lib/alsa-lib/libasound_module_ctl_equal.so /usr/lib/als
 COPY --from=builder /wheels /wheels
 
 RUN pip install --no-index --find-links=/wheels dbus-fast \
-    && pip install --no-index --find-links=/wheels zeroconf \
-    && pip install --no-index --find-links=/wheels LMSTools
+    && pip install --no-index --find-links=/wheels zeroconf
 
 RUN pip install \
     asyncio-mqtt \
@@ -58,7 +56,9 @@ RUN pip install \
 COPY alsa.py /usr/local/bin/alsa.py
 COPY backup.py /usr/local/bin/backup.py
 COPY compose.py /usr/local/bin/compose.py
-#COPY power.py /usr/local/bin/dbus.py
+COPY config.py /usr/local/bin/config.py
+COPY lms.py /usr/local/bin/lms.py
+COPY power.py /usr/local/bin/power.py
 COPY supervisor.py /usr/local/bin/supervisor.py
 COPY supervisor.sh /usr/local/bin/supervisor.sh
 RUN chmod +x /usr/local/bin/supervisor.sh

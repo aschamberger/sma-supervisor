@@ -10,6 +10,7 @@ import alsa
 import asyncio_mqtt as aiomqtt
 import backup
 import compose
+import lms
 import power
 from config import (
     discovery_prefix,
@@ -21,8 +22,7 @@ from config import (
     num_channels,
     subscriptions,
 )
-from LMSTools import LMSDiscovery
-from pysqueezebox import Player, Server
+from pysqueezebox import Server
 from zeroconf import ServiceBrowser, Zeroconf
 
 # publish entities for mqtt discovery
@@ -351,11 +351,11 @@ if __name__ == '__main__':
             lms_host.append(9000)
             compose.update_config_value('LMS_HOST', ':'.join(lms_host))
     else:
-        servers = LMSDiscovery().all()
+        servers = lms.discover()
         if len(servers) == 0:
             sys.exit('No Logitech Media Server could be discovered and no config given manually')
         else:
-            lms_host = [servers[0]['host'], servers[0]['port']]
+            lms_host = [servers[0]['host'], servers[0]['json']]
             compose.update_config_value('LMS_HOST', ':'.join(lms_host))
 
     pretty = json.dumps(entities, indent=4)
