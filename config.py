@@ -6,7 +6,7 @@ num_channels = 8
 
 lms_players = []
 for channel in range(1, num_channels+1):
-    lms_players[channel] = f"02:00:00:00:00:{channel:02d}"
+    lms_players.append(f"02:00:00:00:00:{channel:02d}")
 
 eq_channels = ["00. 31 Hz",
     "01. 63 Hz",
@@ -200,8 +200,9 @@ for channel in range(1, num_channels+1):
     ]
 
     for eq_channel in eq_channels:
+        eq_channel_num = int(eq_channel[:2])
         entities.append({
-            "~": f"{discovery_prefix}/number/{node_id}/{node_id}_ch{channel}_eq{eq_channel[:2]}_eqsetting",
+            "~": f"{discovery_prefix}/number/{node_id}/{node_id}_ch{channel}_eq{eq_channel_num:02d}_eqsetting",
             "name": f"sMA Channel #{channel} EQ {eq_channel} setting",
             "device": subdevice,
             "entity_category": "config",
