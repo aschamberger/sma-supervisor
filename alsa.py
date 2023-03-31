@@ -12,7 +12,7 @@ async def alsactl_store():
         print("error")
 
 async def get_equalizer(channel):
-    device = channel + '_eq'
+    device = f"ch{channel}_eq"
     # amixer -D ch1_eq scontents
     program = [ 'amixer', '-D', device, 'scontents' ]
     p = await asyncio.create_subprocess_exec(*program, stdout=asyncio.subprocess.PIPE)
@@ -34,7 +34,7 @@ async def set_equalizer(channel, settings):
     "sset '08. 8 kHz' " + settings[8] + "\n"
     "sset '09. 16 kHz' " + settings[9])
 
-    device = channel + '_eq'
+    device = f"ch{channel}_eq"
     # amixer -D ch1_eq sset '00. 31 Hz' 66
     # amixer -D ch1_eq -s < stdin
     program = [ 'amixer', '-D', device, '-s' ]
@@ -91,30 +91,31 @@ async def get_device_volumes(device):
       print("error")
 
 async def set_channel_volume(channel, volume):
+    channel = int(channel)
     # ch1 | ch4 | ch3 | ch2
     # ch5 | ch8 | ch7 | ch6
     volumes = ['0%+', '0%+', '0%+', '0%+', '0%+', '0%+', '0%+', '0%+']
-    if channel == 'ch1' or channel == 'ch5':
-      volumes[0] = volume + '%'
-      volumes[1] = volume + '%'
+    if channel == 1 or channel == 5:
+      volumes[0] = f"{volume}%"
+      volumes[1] = f"{volume}%"
       returnIndex = 0
-    elif channel == 'ch4' or channel == 'ch8':
-      volumes[2] = volume + '%'
-      volumes[3] = volume + '%'
+    elif channel == 4 or channel == 8:
+      volumes[2] = f"{volume}%"
+      volumes[3] = f"{volume}%"
       returnIndex = 2
-    elif channel == 'ch3' or channel == 'ch7':
-      volumes[4] = volume + '%'
-      volumes[5] = volume + '%'
+    elif channel == 3 or channel == 7:
+      volumes[4] = f"{volume}%"
+      volumes[5] = f"{volume}%"
       returnIndex = 4
-    elif channel == 'ch2' or channel == 'ch6':
-      volumes[6] = volume + '%'
-      volumes[7] = volume + '%'
+    elif channel == 2 or channel == 6:
+      volumes[6] = f"{volume}%"
+      volumes[7] = f"{volume}%"
       returnIndex = 6
     set_volume = ",".join(volumes)
 
-    if channel == 'ch1' or channel == 'ch2' or channel == 'ch3' or channel == 'ch4':
+    if channel >= 1 and channel <= 4:
       device = "hw:CARD=SND_A"
-    elif channel == 'ch5' or channel == 'ch6' or channel == 'ch7' or channel == 'ch8':
+    elif channel >= 5 and channel <= 8:
       device = "hw:CARD=SND_B"
 
     # amixer -D hw:CARD=SND_A -M set Speaker <volume>
@@ -132,20 +133,20 @@ async def set_channel_volume(channel, volume):
 
 def extract_volume_settings(result):
     lines = result.split("\n")
-    equal = [lines[5].split()[4][1:-1],
-        lines[6].split()[4][1:-1],
-        lines[7].split()[4][1:-1],
-        lines[8].split()[4][1:-1],
-        lines[9].split()[4][1:-1],
-        lines[10].split()[3][1:-1],
-        lines[11].split()[4][1:-1],
-        lines[12].split()[4][1:-1]]
+    equal = [lines[5].split()[4][1:-2],
+        lines[6].split()[4][1:-2],
+        lines[7].split()[4][1:-2],
+        lines[8].split()[4][1:-2],
+        lines[9].split()[4][1:-2],
+        lines[10].split()[3][1:-2],
+        lines[11].split()[4][1:-2],
+        lines[12].split()[4][1:-2]]
     return equal
 
 async def main():
     print('alsa control test')
 
-    channel = 'ch1'
+    channel = 1
     equal = ['66', '66', '66', '66', '66', '66', '66', '66', '66', '66']
 
     print(await get_equalizer(channel))
