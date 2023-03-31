@@ -1,6 +1,8 @@
 #!/usr/bin/python3
 
 import asyncio
+import os
+import tempfile
 from dotenv.main import get_key, set_key
 
 envFile = "/etc/opt/compose/.env"
@@ -39,11 +41,21 @@ async def up(profile, recreate=False, service=None):
         print("error")
 
 def read_config_value(key):
-    return get_key(envFile, key)
+    value = get_key(envFile, key)
+    if len(value) == 0:
+        value = None
+
+    return value
 
 def update_config_value(key, value):
+    # make sure the tmpfile is created in target dir to prevent mess due to the container
+    tempfile.tempdir = os.path.dirname(envFile)
     #success, key, value = set_key(file, key, value, quote, export)
-    return set_key(envFile, key, value, 'never', false)
+    set_key(envFile, key, value, 'never', False)
+    # reset tempdir afterwards
+    tempfile.tempdir = None
+    # https://stackoverflow.com/a/10541972: NamedTemporaryFile is always created with mode 0600
+    os.chmod(envFile, 0o666)
 
 async def main():
     print('compose test')
