@@ -27,7 +27,7 @@ async def create_local_backup():
 
 async def copy_backup_to_remote():
     remoteHost = get_key(envFile, "BACKUP_SSH_USER") + "@" + get_key(envFile, "BACKUP_SSH_HOST")
-    remoteFileName = get_key(envFile, "BACKUP_REMOTE_DIRECTORY") + "/" + time.strftime("%Y%m%d-%H%M%S") + ".tar.gz"
+    remoteFileName = get_key(envFile, "BACKUP_SSH_FOLDER") + "/" + time.strftime("%Y%m%d-%H%M%S") + ".tar.gz"
     program = [ 'sshpass', '-p', get_key(envFile, "BACKUP_SSH_PASSWORD"),
         'scp', '-o', 'StrictHostKeyChecking=no', '-o', 'UserKnownHostsFile=/dev/null',
         '-P', get_key(envFile, "BACKUP_SSH_PORT"), backupTempName, remoteHost + ":" + remoteFileName]

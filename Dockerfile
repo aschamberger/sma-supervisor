@@ -30,12 +30,12 @@ RUN apk update \
 
 RUN apk add caps --repository=http://dl-cdn.alpinelinux.org/alpine/edge/testing/
 
-# add group piaudio and pigpio with gid of underlying raspberry os groups
+# add group piaudio and docker with gid of underlying raspberry os groups
 RUN addgroup -g 29 -S piaudio \
-    && addgroup -g 997 -S pigpio \
+    && addgroup -g 995 -S docker \
     && adduser -S supervisor \
-	&& addgroup supervisor piaudio \
-	&& addgroup supervisor pigpio
+    && addgroup supervisor piaudio \
+    && addgroup supervisor docker
 
 # create file to be able to map host asound.conf
 RUN touch /etc/asound.conf
@@ -49,6 +49,7 @@ RUN pip install --no-index --find-links=/wheels dbus-fast \
     && pip install --no-index --find-links=/wheels zeroconf
 
 RUN pip install \
+    aiohttp \
     asyncio-mqtt \
     pysqueezebox \
     python-dotenv
