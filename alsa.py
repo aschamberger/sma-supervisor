@@ -3,7 +3,8 @@
 import asyncio
 
 async def alsactl_store():
-    program = [ 'alsactl', 'store' ]
+    # https://man.archlinux.org/man/alsactl.1.en#L,
+    program = [ 'alsactl', '-L', 'store' ]
     p = await asyncio.create_subprocess_exec(*program, stdout=asyncio.subprocess.PIPE)
     stdout, stderr = await p.communicate()
     if p.returncode == 0:
