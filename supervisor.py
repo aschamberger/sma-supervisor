@@ -175,10 +175,22 @@ async def set_lms_host(client, lms_server, payload, channel, eq_channel):
 async def set_mqtt_host(client, lms_server, payload, channel, eq_channel):
     if (":" not in payload):
         payload = f"{payload}:1883"
-    compose.update_config_value("MQTT_HOST", payload)
+    if "@" in payload:
+        user, host = payload.split('@')
+    else:
+        user = ""
+        host = payload
+    compose.update_config_value("MQTT_HOST", host)
+    compose.update_config_value("MQTT_USER", user)
     # restart players
-    await compose.up("on", True)
+    # TODO: not required for squeezelite instances, so maybe split into two profiles later
+    # await compose.up("on", True)
     topic = f"{discovery_prefix}/text/{node_id}/{node_id}_mqtt_host/state"
+    await client.publish(topic, payload=payload)
+
+async def set_mqtt_password(client, lms_server, payload, channel, eq_channel):
+    compose.update_config_value("MQTT_PASSWORD", payload)
+    topic = f"{discovery_prefix}/text/{node_id}/{node_id}_mqtt_password/state"
     await client.publish(topic, payload=payload)
 
 async def set_hass_host(client, lms_server, payload, channel, eq_channel):
@@ -271,11 +283,17 @@ async def main():
             lms_host, lms_port = compose.read_config_value('LMS_HOST').split(':')
             lms_server = LmsServer(session, lms_host, int(lms_port))
             mqtt_host, mqtt_port = compose.read_config_value('MQTT_HOST').split(':')
-            async with aiomqtt.Client(hostname=mqtt_host, port=int(mqtt_port)) as client:
+            mqtt_user = compose.read_config_value('MQTT_USER')
+            mqtt_password = compose.read_config_value('MQTT_PASSWORD')
+            async with aiomqtt.Client(hostname=mqtt_host, port=int(mqtt_port), username=mqtt_user, password=mqtt_password) as client:
                 await publish_entities(client)
                 # publish player names from squeezelite name files as eventually the LMS
                 # does not have any connected players yet and we don't need to wait for player connect
                 await publish_backup_config(client)
+                # TODO publish missing items
+                #await publish_hass_config(client)
+                #await publish_mqtt_config(client)
+                #await publish_lms_config(client)
                 await publish_hass_switch(client)
                 await publish_volume(client)
                 await publish_equalizer_settings(client)
@@ -297,7 +315,10 @@ async def main():
                 async with client.messages() as messages:
                     for subscription in subscriptions:
                         await client.subscribe(subscription)
+                    # TODO subscribe to 'homeassistant/status'                 
+                    #await client.subscribe("homeassistant/status")
                     async for message in messages:
+                        # TODO publish all data when homeassistant/status online
                         # handle subscriptions and map to function calls
                         topic_levels = str(message.topic).split('/')
                         cmd = topic_levels[-1] # 'do' or 'set'

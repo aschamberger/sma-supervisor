@@ -131,6 +131,3 @@ Links:
 
 * limit container restarts if too many/multiple commands resulting in restarts --> queue tasks and consolidate
 * limit permissions to supervisor for reboot and do not grant for all users --> create a supervisor user and map to container: https://docs.docker.com/engine/reference/run/#user
-* better file permissions handling in setup
-* https://github.com/skiffos/skiffos + GitHub actions + https://www.home-assistant.io/integrations/update.mqtt
-* usb restart via uhubctl (network down required for usb restart? org.freedesktop.NetworkManager via dbus?) >> withdrawn as with current USB HUB the USB seems to be stable

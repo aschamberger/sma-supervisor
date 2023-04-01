@@ -38,7 +38,7 @@ subscriptions = [
 
 device = {
     "name": "sqeezeMultiAmp",
-    "identifiers": node_id
+    "identifiers": [node_id]
 }
 
 # set up home assisstant entities
@@ -46,7 +46,9 @@ device = {
 entities = [
     {
         "~": f"{discovery_prefix}/binary_sensor/{node_id}/{node_id}_supervisor",
+        "unique_id": f"{node_id}_supervisor",
         "name": "sMA Supervisor Container State",
+        "object_id": f"{node_id}_supervisor",
         "device": device,
         "entity_category": "diagnostic",
         "dev_cla": "running",
@@ -54,16 +56,19 @@ entities = [
     },
     {
         "~": f"{discovery_prefix}/button/{node_id}/{node_id}_shutdown",
+        "unique_id": f"{node_id}_shutdown",
         "name": "sMA Server Shutdown",
+        "object_id": f"{node_id}_shutdown",
         "device": device,
         "entity_category": "config",
-        "dev_cla": "None",
         "icon": "mdi:stop",
         "cmd_t": "~/do"
     },
     {
         "~": f"{discovery_prefix}/button/{node_id}/{node_id}_restart",
+        "unique_id": f"{node_id}_restart",
         "name": "sMA Server Restart",
+        "object_id": f"{node_id}_restart",
         "device": device,
         "entity_category": "config",
         "dev_cla": "restart",
@@ -72,7 +77,9 @@ entities = [
     },
     {
         "~": f"{discovery_prefix}/button/{node_id}/{node_id}_compose_recreate",
+        "unique_id": f"{node_id}_compose_recreate",
         "name": "sMA Container Recreate",
+        "object_id": f"{node_id}_compose_recreate",
         "device": device,
         "entity_category": "config",
         "dev_cla": "restart",
@@ -81,7 +88,9 @@ entities = [
     },
     {
         "~": f"{discovery_prefix}/text/{node_id}/{node_id}_lms_host",
+        "unique_id": f"{node_id}_lms_host",
         "name": "sMA Logitech Media Server Host",
+        "object_id": f"{node_id}_lms_host",
         "description": "Format: host:port",
         "device": device,
         "entity_category": "config",
@@ -91,8 +100,10 @@ entities = [
     },
     {
         "~": f"{discovery_prefix}/text/{node_id}/{node_id}_mqtt_host",
+        "unique_id": f"{node_id}_mqtt_host",
         "name": "sMA MQTT Host",
-        "description": "Format: host:port",
+        "object_id": f"{node_id}_mqtt_host",
+        "description": "Format: [user@]host:port (user is optional)",
         "device": device,
         "entity_category": "config",
         "icon": "mdi:server-network",
@@ -100,8 +111,22 @@ entities = [
         "stat_t": "~/state"
     },
     {
+        "~": f"{discovery_prefix}/text/{node_id}/{node_id}_mqtt_password",
+        "unique_id": f"{node_id}_mqtt_password",
+        "name": "sMA MQTT Password",
+        "object_id": f"{node_id}_mqtt_password",
+        "device": device,
+        "entity_category": "config",
+        "icon": "mdi:lock",
+        "mode": "password",
+        "cmd_t": "~/set",
+        "stat_t": "~/state"
+    },
+    {
         "~": f"{discovery_prefix}/text/{node_id}/{node_id}_hass_host",
+        "unique_id": f"{node_id}_hass_host",
         "name": "sMA Home Assistant Host",
+        "object_id": f"{node_id}_hass_host",
         "description": "Format: host:port",
         "device": device,
         "entity_category": "config",
@@ -111,7 +136,9 @@ entities = [
     },
     {
         "~": f"{discovery_prefix}/text/{node_id}/{node_id}_hass_bearer",
+        "unique_id": f"{node_id}_hass_bearer",
         "name": "sMA Home Assistant bearer token",
+        "object_id": f"{node_id}_hass_bearer",
         "device": device,
         "entity_category": "config",
         "icon": "mdi:lock",
@@ -121,7 +148,9 @@ entities = [
     },
     {
         "~": f"{discovery_prefix}/button/{node_id}/{node_id}_remote_backup",
+        "unique_id": f"{node_id}_remote_backup",
         "name": "sMA Remote Backup ",
+        "object_id": f"{node_id}_remote_backup",
         "device": device,
         "entity_category": "config",
         "icon": "mdi:cloud-upload",
@@ -129,7 +158,9 @@ entities = [
     },
     {
         "~": f"{discovery_prefix}/text/{node_id}/{node_id}_backup_host",
+        "unique_id": f"{node_id}_backup_host",
         "name": "sMA Remote Backup Host",
+        "object_id": f"{node_id}_backup_host",
         "description": "Format: user@host:port",
         "device": device,
         "entity_category": "config",
@@ -139,7 +170,9 @@ entities = [
     },
     {
         "~": f"{discovery_prefix}/text/{node_id}/{node_id}_backup_password",
+        "unique_id": f"{node_id}_backup_password",
         "name": "sMA Remote Backup Password",
+        "object_id": f"{node_id}_backup_password",
         "device": device,
         "entity_category": "config",
         "icon": "mdi:lock",
@@ -149,7 +182,9 @@ entities = [
     },
     {
         "~": f"{discovery_prefix}/text/{node_id}/{node_id}_backup_folder",
+        "unique_id": f"{node_id}_backup_folder",
         "name": "sMA Remote Backup Folder",
+        "object_id": f"{node_id}_backup_folder",
         "device": device,
         "entity_category": "config",
         "icon": "mdi:folder",
@@ -158,7 +193,9 @@ entities = [
     },
     # {
         # "~": f"{discovery_prefix}/number/{node_id}/{node_id}_gpio_relay/",
+        # "unique_id": f"{node_id}_gpio_relay/",
         # "name": "sMA GPIO Relay",
+        # "object_id": f"{node_id}_gpio_relay/",
         # "device": device,
         # "entity_category": "config",
         # "icon": "mdi:power-plug",
@@ -174,14 +211,16 @@ for channel in range(1, num_channels+1):
     channel = f"{channel:02d}"
     subdevice = {
         "name": f"sqeezeMultiAmp Channel #{channel}",
-        "identifiers": f"{node_id}-ch{channel}",
+        "identifiers": [f"{node_id}-ch{channel}"],
         "via_device": node_id
     }
 
     entities += [
         {
             "~": f"{discovery_prefix}/binary_sensor/{node_id}/{node_id}_ch{channel}",
+            "unique_id": f"{node_id}_ch{channel}",
             "name": f"sMA Channel #{channel} Container State",
+            "object_id": f"{node_id}_ch{channel}",
             "device": subdevice,
             "entity_category": "diagnostic",
             "dev_cla": "running",
@@ -189,7 +228,9 @@ for channel in range(1, num_channels+1):
         },
         {
             "~": f"{discovery_prefix}/text/{node_id}/{node_id}_ch{channel}_player_name",
+            "unique_id": f"{node_id}_ch{channel}_player_name",
             "name": f"sMA Channel #{channel} Player Name",
+            "object_id": f"{node_id}_ch{channel}_player_name",
             "device": subdevice,
             "entity_category": "config",
             "icon": "mdi:rename",
@@ -203,7 +244,9 @@ for channel in range(1, num_channels+1):
         eq_channel_num = int(eq_channel[:2])
         entities.append({
             "~": f"{discovery_prefix}/number/{node_id}/{node_id}_ch{channel}_eq{eq_channel_num:02d}_eqsetting",
+            "unique_id": f"{node_id}_ch{channel}_eq{eq_channel_num:02d}_eqsetting",
             "name": f"sMA Channel #{channel} EQ {eq_channel} setting",
+            "object_id": f"{node_id}_ch{channel}_eq{eq_channel_num:02d}_eqsetting",
             "device": subdevice,
             "entity_category": "config",
             "icon": "mdi:tune",
@@ -216,7 +259,9 @@ for channel in range(1, num_channels+1):
     for eq_preset in eq_presets.keys():
         entities.append({
             "~": f"{discovery_prefix}/scene/{node_id}/{node_id}_ch{channel}_eqpreset_{eq_preset}",
+            "unique_id": f"{node_id}_ch{channel}_eqpreset_{eq_preset}",
             "name": f"sMA Channel #{channel} EQ preset {eq_preset}",
+            "object_id": f"{node_id}_ch{channel}_eqpreset_{eq_preset}",
             "device": subdevice,
             "dev_cla": "None",
             "icon": "mdi:folder-star",
@@ -227,7 +272,9 @@ for channel in range(1, num_channels+1):
     entities += [
         {
             "~": f"{discovery_prefix}/number/{node_id}/{node_id}_ch{channel}_volume",
+            "unique_id": f"{node_id}_ch{channel}_volume",
             "name": f"sMA Channel #{channel} volume",
+            "object_id": f"{node_id}_ch{channel}_volume",
             "device": subdevice,
             "entity_category": "config",
             "icon": "mdi:volume-high",
@@ -238,7 +285,9 @@ for channel in range(1, num_channels+1):
         },
         {
             "~": f"{discovery_prefix}/text/{node_id}/{node_id}_ch{channel}_hass_switch",
+            "unique_id": f"{node_id}_ch{channel}_hass_switch",
             "name": f"sMA Channel #{channel} external switch",
+            "object_id": f"{node_id}_ch{channel}_hass_switch",
             "description": "Home Assistant entity id that should be switched on/off based on player state",
             "device": subdevice,
             "entity_category": "config",
