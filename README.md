@@ -13,12 +13,13 @@ Configuration/control options:
 * server shutdown/restart
 * restart all squeezlite/hermes containers
 * backup and upload all custom config (player names, eq/volume settings, env-file) via scp to other host
-* equalizer settings
+* equalizer settings [RESTART if not previously chX_eq configured - which is default]
 * channel volume settings
 * change names of squeezelite players (can also be done via LMS interface)
-* set up external home assistant switch entity per channel
-* set up LMS, MQTT, Home Assistant hostnames/IPs
-* set up Home Assistant bearer token
+* set up external home assistant switch entity per channel [RESTART]
+* set up LMS, MQTT, Home Assistant hostnames/IPs [RESTART]
+* set up Home Assistant bearer token [RESTART]
+[RESTART] = squeezelite containers are recreated/restarted to pick up changes
 
 Not configurable via supervisor:
 * GPIOs --> edit env file and container restart required
@@ -51,6 +52,39 @@ cd /usr/local/src/sma/supervisor
 
 ## Notes/links
 
+### Install local mosquitto broker for testing
+
+```
+sudo apt install mosquitto mosquitto-clients
+mosquitto_sub -h 127.0.0.1 -v -t "homeassistant/#"
+```
+
+#### Setting values from MQTT
+
+```
+mosquitto_pub -h 127.0.0.1 -t "homeassistant/number/smab827eb6d35a8/smab827eb6d35a8_ch08_volume/set" -m 29
+mosquitto_pub -h 127.0.0.1 -t "homeassistant/number/smab827eb6d35a8/smab827eb6d35a8_ch08_eq00_eqsetting/set" -m 75
+
+mosquitto_pub -h 127.0.0.1 -t "homeassistant/scene/smab827eb6d35a8/smab827eb6d35a8_ch08_eqpreset/set" -m "pop"
+
+mosquitto_pub -h 127.0.0.1 -t "homeassistant/button/smab827eb6d35a8/smab827eb6d35a8_shutdown/do" -m ON
+mosquitto_pub -h 127.0.0.1 -t "homeassistant/button/smab827eb6d35a8/smab827eb6d35a8_restart/do" -m ON
+mosquitto_pub -h 127.0.0.1 -t "homeassistant/button/smab827eb6d35a8/smab827eb6d35a8_remote_backup/do" -m ON
+mosquitto_pub -h 127.0.0.1 -t "homeassistant/button/smab827eb6d35a8/smab827eb6d35a8_compose_recreate/do" -m ON
+
+mosquitto_pub -h 127.0.0.1 -t "homeassistant/text/smab827eb6d35a8/smab827eb6d35a8_ch08_player_name/set" -m "Werkraum-Test123"
+
+mosquitto_pub -h 127.0.0.1 -t "homeassistant/text/smab827eb6d35a8/smab827eb6d35a8_ch08_hass_switch/set" -m "switch.sound_werkraum_switch"
+mosquitto_pub -h 127.0.0.1 -t "homeassistant/text/smab827eb6d35a8/smab827eb6d35a8_backup_host/set" -m "backup@192.168.178.x:22"
+mosquitto_pub -h 127.0.0.1 -t "homeassistant/text/smab827eb6d35a8/smab827eb6d35a8_backup_password/set" -m "PW123"
+mosquitto_pub -h 127.0.0.1 -t "homeassistant/text/smab827eb6d35a8/smab827eb6d35a8_backup_folder/set" -m "/mnt/user/appdata/..."
+
+mosquitto_pub -h 127.0.0.1 -t "homeassistant/text/smab827eb6d35a8/smab827eb6d35a8_hass_bearer/set" -m "eyJ...."
+mosquitto_pub -h 127.0.0.1 -t "homeassistant/text/smab827eb6d35a8/smab827eb6d35a8_lms_host/set" -m "192.168.178.x:9000"
+mosquitto_pub -h 127.0.0.1 -t "homeassistant/text/smab827eb6d35a8/smab827eb6d35a8_mqtt_host/set" -m "localhost:1883"
+mosquitto_pub -h 127.0.0.1 -t "homeassistant/text/smab827eb6d35a8/smab827eb6d35a8_hass_host/set" -m "192.168.178.x:8123"
+```
+
 ### MQTT and HA discovery
 
 Links:
@@ -68,6 +102,11 @@ Links:
 * https://fhackts.wordpress.com/2019/08/08/shutting-down-or-rebooting-over-dbus-programmatically-from-a-non-root-user/
 * https://github.com/Bluetooth-Devices/dbus-fast
 * https://stackoverflow.com/questions/59434149/using-dbus-to-poweroff-raspberry-pi-inside-docker-container-and-python
+* old polkit does not have javascript rules: 
+  - https://unix.stackexchange.com/a/417968 
+  - https://unix.stackexchange.com/a/491603
+  - https://unix.stackexchange.com/questions/289123/explanation-of-file-org-freedesktop-login1-policy
+  - check ploicy `pkcheck --action-id org.freedesktop.login1.reboot --process $$ -u; echo $?`
 * https://github.com/rajlaud/pysqueezebox 
 
 ### Restart squeezlite/hermes containers
@@ -88,7 +127,10 @@ Links:
 * https://csatlas.com/python-subprocess-run-exec-system-command/
 * does not seem to support equalizer at first impression: http://larsimmisch.github.io/pyalsaaudio/libalsaaudio.html
 
-### Ideas that most likely won't be realized
+### Ideas for the future
 
+* limit container restarts if too many/multiple commands resulting in restarts --> queue tasks and consolidate
+* limit permissions to supervisor for reboot and do not grant for all users --> create a supervisor user and map to container: https://docs.docker.com/engine/reference/run/#user
+* better file permissions handling in setup
 * https://github.com/skiffos/skiffos + GitHub actions + https://www.home-assistant.io/integrations/update.mqtt
 * usb restart via uhubctl (network down required for usb restart? org.freedesktop.NetworkManager via dbus?) >> withdrawn as with current USB HUB the USB seems to be stable
