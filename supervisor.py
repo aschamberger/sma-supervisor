@@ -47,6 +47,31 @@ async def publish_backup_config(client):
     topic = f"{discovery_prefix}/text/{node_id}/{node_id}_backup_folder/state"
     await client.publish(topic, payload=payload)
 
+async def publish_hass_config(client):
+    payload = compose.read_config_value("HASS_HOST")
+    topic = f"{discovery_prefix}/text/{node_id}/{node_id}_hass_host/state"
+    await client.publish(topic, payload=payload)
+
+    payload = compose.read_config_value("HASS_BEARER")
+    topic = f"{discovery_prefix}/text/{node_id}/{node_id}_hass_bearer/state"
+    await client.publish(topic, payload=payload)
+
+async def publish_mqtt_config(client):
+    host = compose.read_config_value("MQTT_HOST")
+    user = compose.read_config_value("MQTT_USER")
+    payload = f"{user}@{host}"
+    topic = f"{discovery_prefix}/text/{node_id}/{node_id}_mqtt_host/state"
+    await client.publish(topic, payload=payload)
+
+    payload = compose.read_config_value("MQTT_PASSWORD")
+    topic = f"{discovery_prefix}/text/{node_id}/{node_id}_mqtt_password/state"
+    await client.publish(topic, payload=payload)
+
+async def publish_lms_config(client):
+    payload = compose.read_config_value("LMS_HOST")
+    topic = f"{discovery_prefix}/text/{node_id}/{node_id}_lms_host/state"
+    await client.publish(topic, payload=payload)
+
 async def publish_hass_switch(client):
     for channel in range(1, num_channels+1):
         switch = compose.read_config_value(f"HASS_SWITCH_CH{channel}")
@@ -253,12 +278,13 @@ async def set_eqsetting(client, lms_server, payload, channel, eq_channel):
     await client.publish(topic, payload=payload)
 
 async def set_eqpreset(client, lms_server, payload, channel, eq_channel):
-    # enables eq in env file if not enabled and restarts container
-    await check_and_enable_eq(channel)
-    settings = await alsa.set_equalizer(channel, eq_presets[payload])
-    for eq_channel in range(0, 10):
-        topic = f"{discovery_prefix}/number/{node_id}/{node_id}_ch{channel}_eq{eq_channel:02d}_eqsetting/state"
-        await client.publish(topic, payload=settings[eq_channel])
+    if payload in eq_presets
+        # enables eq in env file if not enabled and restarts container
+        await check_and_enable_eq(channel)
+        settings = await alsa.set_equalizer(channel, eq_presets[payload])
+        for eq_channel in range(0, 10):
+            topic = f"{discovery_prefix}/number/{node_id}/{node_id}_ch{channel}_eq{eq_channel:02d}_eqsetting/state"
+            await client.publish(topic, payload=settings[eq_channel])
 
 async def set_volume(client, lms_server, payload, channel, eq_channel):
     await alsa.set_channel_volume(channel, payload)
@@ -290,10 +316,9 @@ async def main():
                 # publish player names from squeezelite name files as eventually the LMS
                 # does not have any connected players yet and we don't need to wait for player connect
                 await publish_backup_config(client)
-                # TODO publish missing items
-                #await publish_hass_config(client)
-                #await publish_mqtt_config(client)
-                #await publish_lms_config(client)
+                await publish_hass_config(client)
+                await publish_mqtt_config(client)
+                await publish_lms_config(client)
                 await publish_hass_switch(client)
                 await publish_volume(client)
                 await publish_equalizer_settings(client)

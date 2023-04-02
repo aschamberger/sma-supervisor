@@ -258,15 +258,15 @@ for channel in range(1, num_channels+1):
 
     for eq_preset in eq_presets.keys():
         entities.append({
-            "~": f"{discovery_prefix}/scene/{node_id}/{node_id}_ch{channel}_eqpreset_{eq_preset}",
+            "~": f"{discovery_prefix}/button/{node_id}/{node_id}_ch{channel}_eqpreset_{eq_preset}",
             "unique_id": f"{node_id}_ch{channel}_eqpreset_{eq_preset}",
             "name": f"sMA Channel #{channel} EQ preset {eq_preset}",
             "object_id": f"{node_id}_ch{channel}_eqpreset_{eq_preset}",
             "device": subdevice,
-            "dev_cla": "None",
+            "entity_category": "config",
             "icon": "mdi:folder-star",
-            "cmd_t": f"{discovery_prefix}/scene/{node_id}/{node_id}_ch{channel}_eqpreset/set",
-            "pl_on": eq_preset
+            "cmd_t": f"{discovery_prefix}/button/{node_id}/{node_id}_ch{channel}_eqpreset/set",
+            "pl_prs": eq_preset
         })
 
     entities += [
