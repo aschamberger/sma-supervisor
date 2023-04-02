@@ -259,7 +259,7 @@ async def set_backup_folder(client, lms_server, payload, channel, eq_channel):
 async def set_player_name(client, lms_server, payload, channel, eq_channel):
     # update player name via LMS, this pushes to update to squeezelite
     await lms_server.async_query("name", payload, player=lms_players[channel-1])
-    topic = f"{discovery_prefix}/text/{node_id}/{node_id}_ch{channel}_player_name/state"
+    topic = f"{discovery_prefix}/text/{node_id}/{node_id}_ch{channel:02d}_player_name/state"
     await client.publish(topic, payload=payload)
 
 async def check_and_enable_eq(channel):
@@ -274,16 +274,16 @@ async def set_eqsetting(client, lms_server, payload, channel, eq_channel):
     # enables eq in env file if not enabled and restarts container
     await check_and_enable_eq(channel)
     await alsa.set_equalizer_channel(channel, eq_channel, payload)
-    topic = f"{discovery_prefix}/number/{node_id}/{node_id}_ch{channel}_eq{eq_channel:02d}_eqsetting/state"
+    topic = f"{discovery_prefix}/number/{node_id}/{node_id}_ch{channel:02d}_eq{eq_channel:02d}_eqsetting/state"
     await client.publish(topic, payload=payload)
 
 async def set_eqpreset(client, lms_server, payload, channel, eq_channel):
-    if payload in eq_presets
+    if payload in eq_presets:
         # enables eq in env file if not enabled and restarts container
         await check_and_enable_eq(channel)
         settings = await alsa.set_equalizer(channel, eq_presets[payload])
         for eq_channel in range(0, 10):
-            topic = f"{discovery_prefix}/number/{node_id}/{node_id}_ch{channel}_eq{eq_channel:02d}_eqsetting/state"
+            topic = f"{discovery_prefix}/number/{node_id}/{node_id}_ch{channel:02d}_eq{eq_channel:02d}_eqsetting/state"
             await client.publish(topic, payload=settings[eq_channel])
 
 async def set_volume(client, lms_server, payload, channel, eq_channel):
@@ -340,36 +340,47 @@ async def main():
                 async with client.messages() as messages:
                     for subscription in subscriptions:
                         await client.subscribe(subscription)
-                    # TODO subscribe to 'homeassistant/status'                 
-                    #await client.subscribe("homeassistant/status")
+                    # subscribe to 'homeassistant/status'                 
+                    await client.subscribe("homeassistant/status")
                     async for message in messages:
-                        # TODO publish all data when homeassistant/status online
-                        # handle subscriptions and map to function calls
-                        topic_levels = str(message.topic).split('/')
-                        cmd = topic_levels[-1] # 'do' or 'set'
-                        object_id = topic_levels[-2]
-                        action = object_id[len(node_id)+1:] # remove node_id from beginning
-                        channel = None
-                        eq_channel = None
-                        # extract channel if action on channel
-                        if action[0:2] == 'ch' and action[4:5] == '_':
-                            channel = int(action[2:4])
-                            action = action[5:]
-                            # extract eq_channel if action on eq_channel
-                            if action[0:2] == 'eq' and action[4:5] == '_':
-                                eq_channel = int(action[2:4])
-                                action = action[5:]
-
-                        # call desired function
-                        function = f"{cmd}_{action}"
-                        if (globals()[function]):
-                            await globals()[function](client, lms_server, message.payload.decode(), channel, eq_channel)
-                            if function == "set_lms_host" or function == "set_mqtt_host":
-                                task1.cancel()
-                                task2.cancel()
-                                continue
+                        # republish all data when homeassistant/status online
+                        if message.topic.matches("homeassistant/status"):
+                            if message.payload.decode() == "online":
+                                await publish_backup_config(client)
+                                await publish_hass_config(client)
+                                await publish_mqtt_config(client)
+                                await publish_lms_config(client)
+                                await publish_hass_switch(client)
+                                await publish_volume(client)
+                                await publish_equalizer_settings(client)
+                                await publish_player_names_from_name_files(client)                    
                         else:
-                            print(f'Error: function {function} does not exist.')
+                            # handle subscriptions and map to function calls
+                            topic_levels = str(message.topic).split('/')
+                            cmd = topic_levels[-1] # 'do' or 'set'
+                            object_id = topic_levels[-2]
+                            action = object_id[len(node_id)+1:] # remove node_id from beginning
+                            channel = None
+                            eq_channel = None
+                            # extract channel if action on channel
+                            if action[0:2] == 'ch' and action[4:5] == '_':
+                                channel = int(action[2:4])
+                                action = action[5:]
+                                # extract eq_channel if action on eq_channel
+                                if action[0:2] == 'eq' and action[4:5] == '_':
+                                    eq_channel = int(action[2:4])
+                                    action = action[5:]
+
+                            # call desired function
+                            function = f"{cmd}_{action}"
+                            if (globals()[function]):
+                                await globals()[function](client, lms_server, message.payload.decode(), channel, eq_channel)
+                                if function == "set_lms_host" or function == "set_mqtt_host":
+                                    task1.cancel()
+                                    task2.cancel()
+                                    continue
+                            else:
+                                print(f'Error: function {function} does not exist.')
 
         except aiomqtt.MqttError as error:
             print(f'Error "{error}". Reconnecting in {reconnect_interval} seconds.')
