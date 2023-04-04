@@ -31,6 +31,24 @@ async def publish_entities(client):
         topic = f"{entity['~']}/config"
         await client.publish(topic, payload=json.dumps(entity), retain=True)
 
+async def publish_gpio_config(client):
+    payload = compose.read_config_value("GPIO_PSU_RELAY")
+    topic = f"{discovery_prefix}/text/{node_id}/{node_id}_gpio_psu_relay/state"
+    await client.publish(topic, payload=payload)
+
+    payload = compose.read_config_value("GPIO_PSU_RELAY_OFF_ON_AMP_SHUTDOWN")
+    topic = f"{discovery_prefix}/text/{node_id}/{node_id}_gpio_mute/state"
+    await client.publish(topic, payload=payload)
+ 
+    sps = [""]*num_channels
+    for channel in range(1, num_channels+1):
+        config = compose.read_config_value(f"GPIO_CH{channel}_SPS")
+        if config is not None:
+            sps[channel-1] = config    
+    payload = ";".join(sps)
+    topic = f"{discovery_prefix}/text/{node_id}/{node_id}_gpio_sps/state"
+    await client.publish(topic, payload=payload)
+
 async def publish_backup_config(client):
     host = compose.read_config_value("BACKUP_SSH_HOST")
     port = compose.read_config_value("BACKUP_SSH_PORT")
@@ -299,6 +317,39 @@ async def set_hass_switch(client, lms_server, payload, channel, eq_channel):
     topic = f"{discovery_prefix}/text/{node_id}/{node_id}_ch{channel:02d}_hass_switch/state"
     await client.publish(topic, payload=payload)
 
+async def set_gpio_psu_relay(client, lms_server, payload, channel, eq_channel):
+    compose.update_config_value("GPIO_PSU_RELAY", payload)
+    await compose.up("on", True)
+    topic = f"{discovery_prefix}/text/{node_id}/{node_id}_gpio_psu_relay/state"
+    await client.publish(topic, payload=payload)
+
+async def set_gpio_mute(client, lms_server, payload, channel, eq_channel):
+    compose.update_config_value("GPIO_PSU_RELAY_OFF_ON_AMP_SHUTDOWN", payload)    
+    mute = payload.split(";")
+    if len(mute) > num_channels:
+        mute = mute[:num_channels]
+    if len(mute) < num_channels:
+        mute = mute + [""]*(num_channels-len(mute))
+    for channel in range(1, num_channels+1):
+        compose.update_config_value(f"GPIO_CH{channel}_MUTE", mute[channel-1])
+    await compose.up("on", True)
+
+    topic = f"{discovery_prefix}/text/{node_id}/{node_id}_gpio_mute/state"
+    await client.publish(topic, payload=";".join(mute))
+
+async def set_gpio_sps(client, lms_server, payload, channel, eq_channel):
+    sps = payload.split(";")
+    if len(sps) > num_channels:
+        sps = sps[:num_channels]
+    if len(sps) < num_channels:
+        sps = sps + [""]*(num_channels-len(sps))
+    for channel in range(1, num_channels+1):
+        compose.update_config_value(f"GPIO_CH{channel}_SPS", sps[channel-1])
+    await compose.up("on", True)
+
+    topic = f"{discovery_prefix}/text/{node_id}/{node_id}_gpio_sps/state"
+    await client.publish(topic, payload=";".join(sps))
+
 async def main():
     session = aiohttp.ClientSession()
 
@@ -315,6 +366,7 @@ async def main():
                 await publish_entities(client)
                 # publish player names from squeezelite name files as eventually the LMS
                 # does not have any connected players yet and we don't need to wait for player connect
+                await publish_gpio_config(client)
                 await publish_backup_config(client)
                 await publish_hass_config(client)
                 await publish_mqtt_config(client)
@@ -346,6 +398,7 @@ async def main():
                         # republish all data when homeassistant/status online
                         if message.topic.matches("homeassistant/status"):
                             if message.payload.decode() == "online":
+                                await publish_gpio_config(client)
                                 await publish_backup_config(client)
                                 await publish_hass_config(client)
                                 await publish_mqtt_config(client)

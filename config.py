@@ -191,19 +191,42 @@ entities = [
         "cmd_t": "~/set",
         "stat_t": "~/state"
     },
-    # {
-        # "~": f"{discovery_prefix}/number/{node_id}/{node_id}_gpio_relay/",
-        # "unique_id": f"{node_id}_gpio_relay/",
-        # "name": "sMA GPIO Relay",
-        # "object_id": f"{node_id}_gpio_relay/",
-        # "device": device,
-        # "entity_category": "config",
-        # "icon": "mdi:power-plug",
-        # "cmd_t": "~/set",
-        # "stat_t": "~/state",
-        # "min": 1,
-        # "max": 26
-    # }
+    {
+        "~": f"{discovery_prefix}/text/{node_id}/{node_id}_gpio_psu_relay",
+        "unique_id": f"{node_id}_gpio_psu_relay",
+        "name": "sMA GPIO Power Supply Relay",
+        "object_id": f"{node_id}_gpio_psu_relay",
+        "description": "GPIO physical pin number (1-40)",
+        "device": device,
+        "entity_category": "config",
+        "icon": "mdi:power-plug",
+        "cmd_t": "~/set",
+        "stat_t": "~/state"
+    },
+    {
+        "~": f"{discovery_prefix}/text/{node_id}/{node_id}_gpio_mute",
+        "unique_id": f"{node_id}_gpio_mute",
+        "name": "sMA GPIO Channel Mute",
+        "object_id": f"{node_id}_gpio_mute",
+        "description": "List of GPIO physical pin numbers (1-40)",
+        "device": device,
+        "entity_category": "config",
+        "icon": "mdi:volume-mute",
+        "cmd_t": "~/set",
+        "stat_t": "~/state"
+    },
+    {
+        "~": f"{discovery_prefix}/text/{node_id}/{node_id}_gpio_sps",
+        "unique_id": f"{node_id}_gpio_sps",
+        "name": "sMA GPIO Speaker Switch",
+        "object_id": f"{node_id}_gpio_sps",
+        "description": "List of GPIO physical pin numbers (1-40)",
+        "device": device,
+        "entity_category": "config",
+        "icon": "mdi:ab-testing",
+        "cmd_t": "~/set",
+        "stat_t": "~/state"
+    }
 ]
 
 # subdevice: sqeezeMultiAmp Channel #?
