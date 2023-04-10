@@ -32,7 +32,10 @@ async def publish_entities(client):
         await client.publish(topic, payload=json.dumps(entity), retain=True)
 
 async def publish_gpio_config(client):
-    payload = compose.read_config_value("GPIO_PSU_RELAY")
+    relay = compose.read_config_value("GPIO_PSU_RELAY")
+    delay_on = compose.read_config_value("PSU_POWER_ON_DELAY")
+    delay_down = compose.read_config_value("PSU_POWER_DOWN_DELAY")
+    payload = f"{relay};{delay_on};{delay_down}"
     topic = f"{discovery_prefix}/text/{node_id}/{node_id}_gpio_psu_relay/state"
     await client.publish(topic, payload=payload)
 
@@ -318,7 +321,14 @@ async def set_hass_switch(client, lms_server, payload, channel, eq_channel):
     await client.publish(topic, payload=payload)
 
 async def set_gpio_psu_relay(client, lms_server, payload, channel, eq_channel):
-    compose.update_config_value("GPIO_PSU_RELAY", payload)
+    psu = payload.split(";")
+    if len(psu) > 3:
+        psu = psu[:3]
+    if len(psu) < 3:
+        psu = psu + [""]*(3-len(psu))
+    compose.update_config_value("GPIO_PSU_RELAY", psu[0])
+    compose.update_config_value("PSU_POWER_ON_DELAY", psu[1])
+    compose.update_config_value("PSU_POWER_DOWN_DELAY", psu[2])
     await compose.up("on", True)
     topic = f"{discovery_prefix}/text/{node_id}/{node_id}_gpio_psu_relay/state"
     await client.publish(topic, payload=payload)
