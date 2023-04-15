@@ -1,4 +1,4 @@
-FROM alpine:3.17 as builder
+FROM alpine:3.17.3 as builder
 
 ENV LANG C.UTF-8
 
@@ -21,7 +21,7 @@ RUN pip install wheel \
     && pip wheel --wheel-dir=/wheels dbus-fast \
     && pip wheel --wheel-dir=/wheels zeroconf
 
-FROM alpine:3.17
+FROM alpine:3.17.3
 
 ENV LANG C.UTF-8
 
