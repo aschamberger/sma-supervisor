@@ -127,7 +127,27 @@ Links:
 * https://csatlas.com/python-subprocess-run-exec-system-command/
 * does not seem to support equalizer at first impression: http://larsimmisch.github.io/pyalsaaudio/libalsaaudio.html
 
+### Docker image handling
+
+* https://docs.docker.com/engine/reference/commandline/compose_config/
+* https://stackoverflow.com/questions/58654003/where-can-i-find-the-digest-for-my-docker-image-so-i-can-delete-it-from-the-regi
+* https://renehernandez.io/snippets/check-image-tag-container-registry/
+* https://blog.atomist.com/github-container-registry/
+* https://docs.docker.com/registry/spec/api/
+
+### Move files with git history to other repo
+
+https://stackoverflow.com/a/37805445
+
+```
+# export as patch files
+git format-patch -o ~/Documents/patches --root ~/Documents/GitHub/squeezeMultiAmp/squeezelite
+# import to other repo: p2 removes subdir in patch file to apply to root
+git am --3way -p2 ~/Documents/patches/*.patch
+```
+
 ### Ideas for the future
 
+* check for existance of both usb dacs and make hard device power cut for usb ports (=DACs) + usb device reset for usb hub: https://gist.github.com/PaulFurtado/fce98aef890469f34d51
 * limit container restarts if too many/multiple commands resulting in restarts --> queue tasks and consolidate
 * limit permissions to supervisor for reboot and do not grant for all users --> create a supervisor user and map to container: https://docs.docker.com/engine/reference/run/#user
