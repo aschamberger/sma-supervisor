@@ -18,6 +18,7 @@ RUN cd /usr/local/src \
 RUN mkdir /wheels
 
 RUN pip install wheel \
+    && pip wheel --wheel-dir=/wheels aiohttp \
     && pip wheel --wheel-dir=/wheels dbus-fast \
     && pip wheel --wheel-dir=/wheels zeroconf
 
@@ -45,11 +46,11 @@ COPY --from=builder /usr/lib/alsa-lib/libasound_module_ctl_equal.so /usr/lib/als
 
 COPY --from=builder /wheels /wheels
 
-RUN pip install --no-index --find-links=/wheels dbus-fast \
+RUN pip install --no-index --find-links=/wheels aiohttp \
+    && pip install --no-index --find-links=/wheels dbus-fast \
     && pip install --no-index --find-links=/wheels zeroconf
 
 RUN pip install \
-    aiohttp \
     asyncio-mqtt \
     pysqueezebox \
     python-dotenv
