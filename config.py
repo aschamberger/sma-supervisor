@@ -226,6 +226,28 @@ entities = [
         "icon": "mdi:ab-testing",
         "cmd_t": "~/set",
         "stat_t": "~/state"
+    },
+    {
+        "~": f"{discovery_prefix}/update/{node_id}/{node_id}_update_supervisor",
+        "unique_id": f"{node_id}_update_supervisor",
+        "name": "sMA Update Supervisor",
+        "object_id": f"{node_id}_update_supervisor",
+        "device": device,
+        "entity_category": "config",
+        "icon": "mdi:oci",
+        "cmd_t": "~/do",
+        "stat_t": "~/state"
+    },
+    {
+        "~": f"{discovery_prefix}/update/{node_id}/{node_id}_update_squeezelite",
+        "unique_id": f"{node_id}_update_squeezelite",
+        "name": "sMA Update Supervisor",
+        "object_id": f"{node_id}_update_squeezelite",
+        "device": device,
+        "entity_category": "config",
+        "icon": "mdi:oci",
+        "cmd_t": "~/do",
+        "stat_t": "~/state"
     }
 ]
 

@@ -146,6 +146,14 @@ git format-patch -o ~/Documents/patches --root ~/Documents/GitHub/squeezeMultiAm
 git am --3way -p2 ~/Documents/patches/*.patch
 ```
 
+### Build with GitHub actions + MQTT Update entity
+
+* https://community.ibm.com/community/user/powerdeveloper/blogs/siddhesh-ghadi/2023/02/08/build-multi-arch-images-on-github-actions-with-bui
+* https://itnext.io/building-multi-cpu-architecture-docker-images-for-arm-and-x86-3-building-in-github-action-ci-a382feab5af9
+* https://docs.docker.com/build/building/multi-platform/
+* https://github.com/docker/metadata-action
+* https://www.home-assistant.io/integrations/update.mqtt
+
 ### Ideas for the future
 
 * check for existance of both usb dacs and make hard device power cut for usb ports (=DACs) + usb device reset for usb hub: https://gist.github.com/PaulFurtado/fce98aef890469f34d51

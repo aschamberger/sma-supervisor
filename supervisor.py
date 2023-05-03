@@ -185,6 +185,38 @@ async def publish_container_states(client):
         except asyncio.CancelledError as error:
             print(f'Error "{error}". Container state polling cancelled.')
 
+async def poll_registry_for_container_updates(client, session):
+    sleep_interval = 6*60*60 # seconds
+    services = ["supervisor", "squeezelite_tpl"]
+    while True:
+        try:
+            for service in services:
+                is_local = await is_local_build(service)
+                if not is_local:
+                    image = await image_from_compose_service(service)
+                    local_digest = await image_digest_local(image)
+                    base_url, tag, token = await image_registry_auth(session, image)
+                    remote_digest = await image_digest_remote(session, base_url, token, tag)
+                    if "latest" in image:
+                        installed, latest = await get_image_versions(session, base_url, token, local_digest, remote_digest)
+                        state = {
+                            "installed_version": installed,
+                            "latest_version": latest,
+                        }
+                    else:
+                        state = {
+                            "installed_version": local_digest,
+                            "latest_version": remote_digest,
+                        }
+
+                    topic = f"{discovery_prefix}/text/{node_id}/{node_id}_update_{service}/state"
+                    await client.publish(topic, payload=json.dumps(state))
+
+            await asyncio.sleep(sleep_interval)
+
+        except asyncio.CancelledError as error:
+            print(f'Error "{error}". Container registry polling cancelled.')
+
 async def power_off_lms_players(lms_server):
     for channel in range(1, num_channels+1):
         await lms_server.async_query("power", "0", player=lms_players[channel-1])
@@ -208,6 +240,20 @@ async def do_remote_backup(client, lms_server, payload, channel, eq_channel):
     await backup.create_local_backup()
     await backup.copy_backup_to_remote()
     backup.delete_local_backup()
+
+async def do_update_supervisor(client, lms_server, payload, channel, eq_channel):
+    image = await compose.image_from_compose_service("supervisor")
+    await compose.image_pull(image)
+    # power off all players to prevent speaker plopp
+    power_off_lms_players(lms_server)
+    await power.reboot()
+
+async def do_update_squeezelite(client, lms_server, payload, channel, eq_channel):
+    image = await compose.image_from_compose_service("squeezelite")
+    await compose.image_pull(image)
+    # power off all players to prevent speaker plopp
+    power_off_lms_players(lms_server)
+    await compose.up("on", True, "squeezelite")
 
 async def set_lms_host(client, lms_server, payload, channel, eq_channel):
     if (":" not in payload):
@@ -361,6 +407,7 @@ async def set_gpio_sps(client, lms_server, payload, channel, eq_channel):
     await client.publish(topic, payload=";".join(sps))
 
 async def main():
+    await compose.image_prune()
     session = aiohttp.ClientSession()
 
     reconnect_interval = 5 # seconds
@@ -390,14 +437,18 @@ async def main():
                 task1 = asyncio.create_task(poll_lms_and_publish_player_names(client, lms_server))
                 # pick up container states via polling
                 task2 = asyncio.create_task(publish_container_states(client))
+                # pick up new container versions via polling container registry
+                task3 = asyncio.create_task(poll_registry_for_container_updates(client, session))
                 # Add task to the set. This creates a strong reference.
                 background_tasks.add(task1)
                 background_tasks.add(task2)
+                background_tasks.add(task3)
                 # To prevent keeping references to finished tasks forever,
                 # make each task remove its own reference from the set after
                 # completion:
                 task1.add_done_callback(background_tasks.discard)
                 task2.add_done_callback(background_tasks.discard)
+                task3.add_done_callback(background_tasks.discard)
 
                 async with client.messages() as messages:
                     for subscription in subscriptions:
@@ -442,6 +493,13 @@ async def main():
                                     task1.cancel()
                                     task2.cancel()
                                     continue
+                                if function == "do_update_supervisor":                                 
+                                    # restart version checking to publish latest version state
+                                    coro = task3.get_coro()
+                                    task3.cancel()
+                                    task3 = asyncio.create_task(coro)
+                                    background_tasks.add(task3)
+                                    task3.add_done_callback(background_tasks.discard)                                    
                             else:
                                 print(f'Error: function {function} does not exist.')
 
