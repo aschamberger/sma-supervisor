@@ -8,6 +8,8 @@ Features:
 * Container init via [Tini](https://github.com/krallin/tini)
 * rootless via [su-exec](https://github.com/ncopa/su-exec)
 * supports [alsaequal](https://github.com/raedwulf/alsaequal)
+* check for new container images on github container registry
+* check for existance of both usb dacs and make hard device power cut for usb ports (=DACs) + usb device reset for usb hub: https://gist.github.com/PaulFurtado/fce98aef890469f34d51
 
 Configuration/control options:
 * server shutdown/restart
@@ -19,10 +21,11 @@ Configuration/control options:
 * set up external home assistant switch entity per channel [RESTART]
 * set up LMS, MQTT, Home Assistant hostnames/IPs [RESTART]
 * set up Home Assistant bearer token [RESTART]
+* GPIOs [RESTART]
+
 [RESTART] = squeezelite containers are recreated/restarted to pick up changes
 
 Not configurable via supervisor:
-* GPIOs --> edit env file and container restart required
 * enable/disable player or hermes instances --> edit env file and container restart required
 
 ## Docker build
@@ -156,6 +159,5 @@ git am --3way -p2 ~/Documents/patches/*.patch
 
 ### Ideas for the future
 
-* check for existance of both usb dacs and make hard device power cut for usb ports (=DACs) + usb device reset for usb hub: https://gist.github.com/PaulFurtado/fce98aef890469f34d51
 * limit container restarts if too many/multiple commands resulting in restarts --> queue tasks and consolidate
 * limit permissions to supervisor for reboot and do not grant for all users --> create a supervisor user and map to container: https://docs.docker.com/engine/reference/run/#user

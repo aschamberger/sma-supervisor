@@ -12,6 +12,7 @@ import backup
 import compose
 import lms
 import power
+import RPi.GPIO as GPIO
 from config import (
     discovery_prefix,
     entities,
@@ -42,12 +43,16 @@ async def publish_gpio_config(client):
     payload = compose.read_config_value("GPIO_PSU_RELAY_OFF_ON_AMP_SHUTDOWN")
     topic = f"{discovery_prefix}/text/{node_id}/{node_id}_gpio_mute/state"
     await client.publish(topic, payload=payload)
- 
+
+    payload = compose.read_config_value("GPIO_USB_POWER")
+    topic = f"{discovery_prefix}/text/{node_id}/{node_id}_gpio_usb_dac/state"
+    await client.publish(topic, payload=payload)
+
     sps = [""]*num_channels
     for channel in range(1, num_channels+1):
         config = compose.read_config_value(f"GPIO_CH{channel}_SPS")
         if config is not None:
-            sps[channel-1] = config    
+            sps[channel-1] = config
     payload = ";".join(sps)
     topic = f"{discovery_prefix}/text/{node_id}/{node_id}_gpio_sps/state"
     await client.publish(topic, payload=payload)
@@ -217,6 +222,31 @@ async def poll_registry_for_container_updates(client, session):
         except asyncio.CancelledError as error:
             print(f'Error "{error}". Container registry polling cancelled.')
 
+async def usb_dac_availability(client, lms_server):
+    sleep_interval = 60 # seconds
+    usb_id_dacs = "0d8c:0102"
+    usb_id_hub = "1a40:0201"
+    gpio_usb_power = compose.read_config_value("GPIO_USB_POWER")
+    if gpio_usb_power:
+        if GPIO.gpio_function(gpio_usb_power) != GPIO.OUT:
+            GPIO.setup(gpio_usb_power, GPIO.OUT)
+            if not GPIO.input(gpio_usb_power):
+                GPIO.output(gpio_usb_power, 1)
+        while True:
+            try:
+                usb_dac_paths = await power.get_usb_device_paths(usb_id_dacs)
+                if len(usb_dac_paths) < 2:
+                    GPIO.output(gpio_usb_power, 0)
+                    await asyncio.sleep(5)
+                    GPIO.output(gpio_usb_power, 1)
+                    usb_hub_path = await power.get_usb_device_paths(usb_id_hub)
+                    power.reset_usb_device(usb_hub_path[0])
+
+                await asyncio.sleep(sleep_interval)
+
+            except asyncio.CancelledError as error:
+                print(f'Error "{error}". USB DAC availability cancelled.')
+
 async def power_off_lms_players(lms_server):
     for channel in range(1, num_channels+1):
         await lms_server.async_query("power", "0", player=lms_players[channel-1])
@@ -380,7 +410,7 @@ async def set_gpio_psu_relay(client, lms_server, payload, channel, eq_channel):
     await client.publish(topic, payload=payload)
 
 async def set_gpio_mute(client, lms_server, payload, channel, eq_channel):
-    compose.update_config_value("GPIO_PSU_RELAY_OFF_ON_AMP_SHUTDOWN", payload)    
+    compose.update_config_value("GPIO_PSU_RELAY_OFF_ON_AMP_SHUTDOWN", payload)
     mute = payload.split(";")
     if len(mute) > num_channels:
         mute = mute[:num_channels]
@@ -392,6 +422,11 @@ async def set_gpio_mute(client, lms_server, payload, channel, eq_channel):
 
     topic = f"{discovery_prefix}/text/{node_id}/{node_id}_gpio_mute/state"
     await client.publish(topic, payload=";".join(mute))
+
+async def set_gpio_usb_dac(client, lms_server, payload, channel, eq_channel):
+    compose.update_config_value("GPIO_USB_POWER", payload)
+    topic = f"{discovery_prefix}/text/{node_id}/{node_id}_gpio_usb_dac/state"
+    await client.publish(topic, payload=payload)
 
 async def set_gpio_sps(client, lms_server, payload, channel, eq_channel):
     sps = payload.split(";")
@@ -439,21 +474,25 @@ async def main():
                 task2 = asyncio.create_task(publish_container_states(client))
                 # pick up new container versions via polling container registry
                 task3 = asyncio.create_task(poll_registry_for_container_updates(client, session))
+                # make sure usb dacs are available
+                task4 = asyncio.create_task(usb_dac_availability())
                 # Add task to the set. This creates a strong reference.
                 background_tasks.add(task1)
                 background_tasks.add(task2)
                 background_tasks.add(task3)
+                background_tasks.add(task4)
                 # To prevent keeping references to finished tasks forever,
                 # make each task remove its own reference from the set after
                 # completion:
                 task1.add_done_callback(background_tasks.discard)
                 task2.add_done_callback(background_tasks.discard)
                 task3.add_done_callback(background_tasks.discard)
+                task4.add_done_callback(background_tasks.discard)
 
                 async with client.messages() as messages:
                     for subscription in subscriptions:
                         await client.subscribe(subscription)
-                    # subscribe to 'homeassistant/status'                 
+                    # subscribe to 'homeassistant/status'
                     await client.subscribe("homeassistant/status")
                     async for message in messages:
                         # republish all data when homeassistant/status online
@@ -467,7 +506,7 @@ async def main():
                                 await publish_hass_switch(client)
                                 await publish_volume(client)
                                 await publish_equalizer_settings(client)
-                                await publish_player_names_from_name_files(client)                    
+                                await publish_player_names_from_name_files(client)
                         else:
                             # handle subscriptions and map to function calls
                             topic_levels = str(message.topic).split('/')
@@ -493,13 +532,20 @@ async def main():
                                     task1.cancel()
                                     task2.cancel()
                                     continue
-                                if function == "do_update_supervisor":                                 
+                                if function == "do_update_supervisor":
                                     # restart version checking to publish latest version state
                                     coro = task3.get_coro()
                                     task3.cancel()
                                     task3 = asyncio.create_task(coro)
                                     background_tasks.add(task3)
-                                    task3.add_done_callback(background_tasks.discard)                                    
+                                    task3.add_done_callback(background_tasks.discard)
+                                if function == "set_gpio_usb_dac":
+                                    # restart dac checking on gpio change
+                                    coro = task4.get_coro()
+                                    task4.cancel()
+                                    task4 = asyncio.create_task(coro)
+                                    background_tasks.add(task4)
+                                    task4.add_done_callback(background_tasks.discard)
                             else:
                                 print(f'Error: function {function} does not exist.')
 
@@ -523,6 +569,9 @@ def find_mqtt_service(self, zeroconf, service_type, name, state_change):
 
 if __name__ == '__main__':
     print('Starting supervisor')
+
+    # set pin numbering mode
+    GPIO.setmode(GPIO.BOARD)
 
     if compose.read_config_value('MQTT_HOST') is not None:
         mqtt_host = compose.read_config_value('MQTT_HOST').split(':')

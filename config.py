@@ -216,6 +216,18 @@ entities = [
         "stat_t": "~/state"
     },
     {
+        "~": f"{discovery_prefix}/text/{node_id}/{node_id}_gpio_usb_dac",
+        "unique_id": f"{node_id}_gpio_usb_dac",
+        "name": "sMA GPIO Channel Mute",
+        "object_id": f"{node_id}_gpio_usb_dac",
+        "description": "GPIO physical pin number (1-40)",
+        "device": device,
+        "entity_category": "config",
+        "icon": "mdi:usb",
+        "cmd_t": "~/set",
+        "stat_t": "~/state"
+    },
+    {
         "~": f"{discovery_prefix}/text/{node_id}/{node_id}_gpio_sps",
         "unique_id": f"{node_id}_gpio_sps",
         "name": "sMA GPIO Speaker Switch",

@@ -20,6 +20,7 @@ RUN mkdir /wheels
 RUN pip install wheel \
     && pip wheel --wheel-dir=/wheels aiohttp \
     && pip wheel --wheel-dir=/wheels dbus-fast \
+    && pip wheel --wheel-dir=/wheels RPi.GPIO \
     && pip wheel --wheel-dir=/wheels zeroconf
 
 FROM alpine:3.18.0
@@ -48,6 +49,7 @@ COPY --from=builder /wheels /wheels
 
 RUN pip install --no-index --find-links=/wheels aiohttp \
     && pip install --no-index --find-links=/wheels dbus-fast \
+    && pip install --no-index --find-links=/wheels RPi.GPIO \
     && pip install --no-index --find-links=/wheels zeroconf
 
 RUN pip install \
