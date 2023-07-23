@@ -446,7 +446,7 @@ async def main():
     session = aiohttp.ClientSession()
 
     reconnect_interval = 5 # seconds
-    background_tasks = set()
+    background_tasks = set() # Add task to the set. This creates a strong reference.
     while True:
         try:
             lms_host, lms_port = compose.read_config_value('LMS_HOST').split(':')
@@ -456,38 +456,41 @@ async def main():
             mqtt_password = compose.read_config_value('MQTT_PASSWORD')
             async with aiomqtt.Client(hostname=mqtt_host, port=int(mqtt_port), username=mqtt_user, password=mqtt_password) as client:
                 await publish_entities(client)
-                # publish player names from squeezelite name files as eventually the LMS
-                # does not have any connected players yet and we don't need to wait for player connect
                 await publish_gpio_config(client)
                 await publish_backup_config(client)
                 await publish_hass_config(client)
                 await publish_mqtt_config(client)
                 await publish_lms_config(client)
                 await publish_hass_switch(client)
+
+                # make sure usb dacs are available
+                task4 = asyncio.create_task(usb_dac_availability())
+                background_tasks.add(task4)
+                task4.add_done_callback(background_tasks.discard)
+
+                # dac availability must be run once before to make sure we have proper input
+                await asyncio.sleep(20)
                 await publish_volume(client)
                 await publish_equalizer_settings(client)
+
+                # publish player names from squeezelite name files as eventually the LMS
+                # does not have any connected players yet and we don't need to wait for player connect
                 await publish_player_names_from_name_files(client)
 
                 # pick up player name changes done via LMS GUI via polling
                 task1 = asyncio.create_task(poll_lms_and_publish_player_names(client, lms_server))
+                background_tasks.add(task1)
+                task1.add_done_callback(background_tasks.discard)
+
                 # pick up container states via polling
                 task2 = asyncio.create_task(publish_container_states(client))
+                background_tasks.add(task2)
+                task2.add_done_callback(background_tasks.discard)
+
                 # pick up new container versions via polling container registry
                 task3 = asyncio.create_task(poll_registry_for_container_updates(client, session))
-                # make sure usb dacs are available
-                task4 = asyncio.create_task(usb_dac_availability())
-                # Add task to the set. This creates a strong reference.
-                background_tasks.add(task1)
-                background_tasks.add(task2)
                 background_tasks.add(task3)
-                background_tasks.add(task4)
-                # To prevent keeping references to finished tasks forever,
-                # make each task remove its own reference from the set after
-                # completion:
-                task1.add_done_callback(background_tasks.discard)
-                task2.add_done_callback(background_tasks.discard)
                 task3.add_done_callback(background_tasks.discard)
-                task4.add_done_callback(background_tasks.discard)
 
                 async with client.messages() as messages:
                     for subscription in subscriptions:
