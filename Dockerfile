@@ -18,17 +18,14 @@ RUN cd /usr/local/src \
 RUN mkdir /wheels
 
 RUN pip install wheel \
-    && pip wheel --wheel-dir=/wheels aiohttp \
-    && pip wheel --wheel-dir=/wheels dbus-fast \
-    && pip wheel --wheel-dir=/wheels RPi.GPIO \
-    && pip wheel --wheel-dir=/wheels zeroconf
+    && pip wheel --wheel-dir=/wheels dbus-fast
 
 FROM alpine:3.18.2
 
 ENV LANG C.UTF-8
 
 RUN apk update \
-    && apk add --no-cache tini su-exec python3 py3-pip alsa-utils ladspa docker-cli-compose openssh sshpass
+    && apk add --no-cache tini su-exec python3 py3-pip py3-aiohttp py3-rpigpio py3-zeroconf alsa-utils ladspa docker-cli-compose openssh sshpass
 
 RUN apk add caps --repository=http://dl-cdn.alpinelinux.org/alpine/edge/testing/
 
@@ -47,10 +44,7 @@ COPY --from=builder /usr/lib/alsa-lib/libasound_module_ctl_equal.so /usr/lib/als
 
 COPY --from=builder /wheels /wheels
 
-RUN pip install --no-index --find-links=/wheels aiohttp \
-    && pip install --no-index --find-links=/wheels dbus-fast \
-    && pip install --no-index --find-links=/wheels RPi.GPIO \
-    && pip install --no-index --find-links=/wheels zeroconf
+RUN pip install --no-index --find-links=/wheels dbus-fast
 
 RUN pip install \
     asyncio-mqtt \

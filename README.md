@@ -9,7 +9,7 @@ Features:
 * rootless via [su-exec](https://github.com/ncopa/su-exec)
 * supports [alsaequal](https://github.com/raedwulf/alsaequal)
 * check for new container images on github container registry
-* check for existance of both usb dacs and make hard device power cut for usb ports (=DACs) + usb device reset for usb hub: https://gist.github.com/PaulFurtado/fce98aef890469f34d51
+* check for existance of both usb dacs and make hard device power cut for usb ports (=DACs) + usb device reset for usb hub
 
 Configuration/control options:
 * server shutdown/restart
