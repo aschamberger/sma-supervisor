@@ -218,7 +218,7 @@ entities = [
     {
         "~": f"{discovery_prefix}/text/{node_id}/{node_id}_gpio_usb_dac",
         "unique_id": f"{node_id}_gpio_usb_dac",
-        "name": "sMA GPIO Channel Mute",
+        "name": "sMA GPIO USB DAC",
         "object_id": f"{node_id}_gpio_usb_dac",
         "description": "GPIO physical pin number (1-40)",
         "device": device,
