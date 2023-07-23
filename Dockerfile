@@ -1,4 +1,4 @@
-FROM alpine:3.18.0 as builder
+FROM alpine:3.18.2 as builder
 
 ENV LANG C.UTF-8
 
@@ -23,7 +23,7 @@ RUN pip install wheel \
     && pip wheel --wheel-dir=/wheels RPi.GPIO \
     && pip wheel --wheel-dir=/wheels zeroconf
 
-FROM alpine:3.18.0
+FROM alpine:3.18.2
 
 ENV LANG C.UTF-8
 
