@@ -464,7 +464,7 @@ async def main():
                 await publish_hass_switch(client)
 
                 # make sure usb dacs are available
-                task4 = asyncio.create_task(usb_dac_availability())
+                task4 = asyncio.create_task(usb_dac_availability(client, lms_server))
                 background_tasks.add(task4)
                 task4.add_done_callback(background_tasks.discard)
 
@@ -534,6 +534,8 @@ async def main():
                                 if function == "set_lms_host" or function == "set_mqtt_host":
                                     task1.cancel()
                                     task2.cancel()
+                                    task3.cancel()
+                                    task4.cancel()
                                     continue
                                 if function == "do_update_supervisor":
                                     # restart version checking to publish latest version state
