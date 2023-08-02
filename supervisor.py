@@ -6,8 +6,8 @@ import sys
 import time
 
 import aiohttp
+import aiomqtt
 import alsa
-import asyncio_mqtt as aiomqtt
 import backup
 import compose
 import lms

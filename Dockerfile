@@ -47,7 +47,7 @@ COPY --from=builder /wheels /wheels
 RUN pip install --no-index --find-links=/wheels dbus-fast
 
 RUN pip install \
-    asyncio-mqtt \
+    aiomqtt \
     pysqueezebox \
     python-dotenv
 
