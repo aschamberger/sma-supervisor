@@ -27,7 +27,7 @@ ENV LANG C.UTF-8
 RUN apk update \
     && apk add --no-cache tini su-exec python3 py3-pip py3-aiohttp py3-rpigpio py3-zeroconf alsa-utils ladspa docker-cli-compose openssh sshpass
 
-RUN apk add caps --repository=http://dl-cdn.alpinelinux.org/alpine/edge/testing/
+RUN apk add caps --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community/
 
 # add group piaudio and docker with gid of underlying raspberry os groups
 RUN addgroup -g 29 -S piaudio \
