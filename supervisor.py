@@ -222,7 +222,7 @@ async def poll_registry_for_container_updates(client, session):
         except asyncio.CancelledError as error:
             print(f'Error "{error}". Container registry polling cancelled.')
 
-async def usb_dac_availability(client, lms_server):
+async def usb_dac_availability():
     sleep_interval = 60 # seconds
     usb_id_dacs = "0d8c:0102"
     usb_id_hub = "1a40:0201"
@@ -463,8 +463,12 @@ async def main():
                 await publish_lms_config(client)
                 await publish_hass_switch(client)
 
+                # publish player names from squeezelite name files as eventually the LMS
+                # does not have any connected players yet and we don't need to wait for player connect
+                await publish_player_names_from_name_files(client)
+
                 # make sure usb dacs are available
-                task4 = asyncio.create_task(usb_dac_availability(client, lms_server))
+                task4 = asyncio.create_task(usb_dac_availability())
                 background_tasks.add(task4)
                 task4.add_done_callback(background_tasks.discard)
 
@@ -472,10 +476,6 @@ async def main():
                 await asyncio.sleep(20)
                 await publish_volume(client)
                 await publish_equalizer_settings(client)
-
-                # publish player names from squeezelite name files as eventually the LMS
-                # does not have any connected players yet and we don't need to wait for player connect
-                await publish_player_names_from_name_files(client)
 
                 # pick up player name changes done via LMS GUI via polling
                 task1 = asyncio.create_task(poll_lms_and_publish_player_names(client, lms_server))
