@@ -35,7 +35,7 @@ RUN addgroup -g 29 -S piaudio \
     && addgroup -g 995 -S docker \
     && adduser -S supervisor \
     && addgroup supervisor piaudio \
-    && addgroup squeezelite pigpio \
+    && addgroup supervisor pigpio \
     && addgroup supervisor docker
 
 # create file to be able to map host asound.conf
