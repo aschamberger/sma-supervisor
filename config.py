@@ -37,7 +37,7 @@ subscriptions = [
 ]
 
 device = {
-    "name": "sqeezeMultiAmp",
+    "name": "sMA",
     "identifiers": [node_id]
 }
 
@@ -47,7 +47,7 @@ entities = [
     {
         "~": f"{discovery_prefix}/binary_sensor/{node_id}/{node_id}_supervisor",
         "unique_id": f"{node_id}_supervisor",
-        "name": "sMA Supervisor Container State",
+        "name": "Supervisor Container State",
         "object_id": f"{node_id}_supervisor",
         "device": device,
         "entity_category": "diagnostic",
@@ -57,7 +57,7 @@ entities = [
     {
         "~": f"{discovery_prefix}/button/{node_id}/{node_id}_shutdown",
         "unique_id": f"{node_id}_shutdown",
-        "name": "sMA Server Shutdown",
+        "name": "Server Shutdown",
         "object_id": f"{node_id}_shutdown",
         "device": device,
         "entity_category": "config",
@@ -67,7 +67,7 @@ entities = [
     {
         "~": f"{discovery_prefix}/button/{node_id}/{node_id}_restart",
         "unique_id": f"{node_id}_restart",
-        "name": "sMA Server Restart",
+        "name": "Server Restart",
         "object_id": f"{node_id}_restart",
         "device": device,
         "entity_category": "config",
@@ -78,7 +78,7 @@ entities = [
     {
         "~": f"{discovery_prefix}/button/{node_id}/{node_id}_compose_recreate",
         "unique_id": f"{node_id}_compose_recreate",
-        "name": "sMA Container Recreate",
+        "name": "Container Recreate",
         "object_id": f"{node_id}_compose_recreate",
         "device": device,
         "entity_category": "config",
@@ -89,7 +89,7 @@ entities = [
     {
         "~": f"{discovery_prefix}/text/{node_id}/{node_id}_lms_host",
         "unique_id": f"{node_id}_lms_host",
-        "name": "sMA Logitech Media Server Host",
+        "name": "Logitech Media Server Host",
         "object_id": f"{node_id}_lms_host",
         "description": "Format: host:port",
         "device": device,
@@ -101,7 +101,7 @@ entities = [
     {
         "~": f"{discovery_prefix}/text/{node_id}/{node_id}_mqtt_host",
         "unique_id": f"{node_id}_mqtt_host",
-        "name": "sMA MQTT Host",
+        "name": "MQTT Host",
         "object_id": f"{node_id}_mqtt_host",
         "description": "Format: [user@]host:port (user is optional)",
         "device": device,
@@ -113,7 +113,7 @@ entities = [
     {
         "~": f"{discovery_prefix}/text/{node_id}/{node_id}_mqtt_password",
         "unique_id": f"{node_id}_mqtt_password",
-        "name": "sMA MQTT Password",
+        "name": "MQTT Password",
         "object_id": f"{node_id}_mqtt_password",
         "device": device,
         "entity_category": "config",
@@ -125,7 +125,7 @@ entities = [
     {
         "~": f"{discovery_prefix}/text/{node_id}/{node_id}_hass_host",
         "unique_id": f"{node_id}_hass_host",
-        "name": "sMA Home Assistant Host",
+        "name": "Home Assistant Host",
         "object_id": f"{node_id}_hass_host",
         "description": "Format: host:port",
         "device": device,
@@ -137,7 +137,7 @@ entities = [
     {
         "~": f"{discovery_prefix}/text/{node_id}/{node_id}_hass_bearer",
         "unique_id": f"{node_id}_hass_bearer",
-        "name": "sMA Home Assistant bearer token",
+        "name": "Home Assistant bearer token",
         "object_id": f"{node_id}_hass_bearer",
         "device": device,
         "entity_category": "config",
@@ -149,7 +149,7 @@ entities = [
     {
         "~": f"{discovery_prefix}/button/{node_id}/{node_id}_remote_backup",
         "unique_id": f"{node_id}_remote_backup",
-        "name": "sMA Remote Backup ",
+        "name": "Remote Backup ",
         "object_id": f"{node_id}_remote_backup",
         "device": device,
         "entity_category": "config",
@@ -159,7 +159,7 @@ entities = [
     {
         "~": f"{discovery_prefix}/text/{node_id}/{node_id}_backup_host",
         "unique_id": f"{node_id}_backup_host",
-        "name": "sMA Remote Backup Host",
+        "name": "Remote Backup Host",
         "object_id": f"{node_id}_backup_host",
         "description": "Format: user@host:port",
         "device": device,
@@ -171,7 +171,7 @@ entities = [
     {
         "~": f"{discovery_prefix}/text/{node_id}/{node_id}_backup_password",
         "unique_id": f"{node_id}_backup_password",
-        "name": "sMA Remote Backup Password",
+        "name": "Remote Backup Password",
         "object_id": f"{node_id}_backup_password",
         "device": device,
         "entity_category": "config",
@@ -183,7 +183,7 @@ entities = [
     {
         "~": f"{discovery_prefix}/text/{node_id}/{node_id}_backup_folder",
         "unique_id": f"{node_id}_backup_folder",
-        "name": "sMA Remote Backup Folder",
+        "name": "Remote Backup Folder",
         "object_id": f"{node_id}_backup_folder",
         "device": device,
         "entity_category": "config",
@@ -194,7 +194,7 @@ entities = [
     {
         "~": f"{discovery_prefix}/text/{node_id}/{node_id}_gpio_psu_relay",
         "unique_id": f"{node_id}_gpio_psu_relay",
-        "name": "sMA GPIO Power Supply Relay",
+        "name": "GPIO Power Supply Relay",
         "object_id": f"{node_id}_gpio_psu_relay",
         "description": "GPIO physical pin number (1-40)",
         "device": device,
@@ -206,7 +206,7 @@ entities = [
     {
         "~": f"{discovery_prefix}/text/{node_id}/{node_id}_gpio_mute",
         "unique_id": f"{node_id}_gpio_mute",
-        "name": "sMA GPIO Channel Mute",
+        "name": "GPIO Channel Mute",
         "object_id": f"{node_id}_gpio_mute",
         "description": "List of GPIO physical pin numbers (1-40)",
         "device": device,
@@ -218,7 +218,7 @@ entities = [
     {
         "~": f"{discovery_prefix}/text/{node_id}/{node_id}_gpio_usb_dac",
         "unique_id": f"{node_id}_gpio_usb_dac",
-        "name": "sMA GPIO USB DAC",
+        "name": "GPIO USB DAC",
         "object_id": f"{node_id}_gpio_usb_dac",
         "description": "GPIO physical pin number (1-40)",
         "device": device,
@@ -230,7 +230,7 @@ entities = [
     {
         "~": f"{discovery_prefix}/text/{node_id}/{node_id}_gpio_sps",
         "unique_id": f"{node_id}_gpio_sps",
-        "name": "sMA GPIO Speaker Switch",
+        "name": "GPIO Speaker Switch",
         "object_id": f"{node_id}_gpio_sps",
         "description": "List of GPIO physical pin numbers (1-40)",
         "device": device,
@@ -242,7 +242,7 @@ entities = [
     {
         "~": f"{discovery_prefix}/update/{node_id}/{node_id}_update_supervisor",
         "unique_id": f"{node_id}_update_supervisor",
-        "name": "sMA Update Supervisor",
+        "name": "Update Supervisor",
         "object_id": f"{node_id}_update_supervisor",
         "device": device,
         "entity_category": "config",
@@ -253,7 +253,7 @@ entities = [
     {
         "~": f"{discovery_prefix}/update/{node_id}/{node_id}_update_squeezelite",
         "unique_id": f"{node_id}_update_squeezelite",
-        "name": "sMA Update Supervisor",
+        "name": "Update Supervisor",
         "object_id": f"{node_id}_update_squeezelite",
         "device": device,
         "entity_category": "config",
@@ -263,11 +263,11 @@ entities = [
     }
 ]
 
-# subdevice: sqeezeMultiAmp Channel #?
+# subdevice: sMA Channel #?
 for channel in range(1, num_channels+1):
     channel = f"{channel:02d}"
     subdevice = {
-        "name": f"sqeezeMultiAmp Channel #{channel}",
+        "name": f"sMA Channel #{channel}",
         "identifiers": [f"{node_id}-ch{channel}"],
         "via_device": node_id
     }
@@ -276,7 +276,7 @@ for channel in range(1, num_channels+1):
         {
             "~": f"{discovery_prefix}/binary_sensor/{node_id}/{node_id}_ch{channel}",
             "unique_id": f"{node_id}_ch{channel}",
-            "name": f"sMA Channel #{channel} Container State",
+            "name": f"Container State",
             "object_id": f"{node_id}_ch{channel}",
             "device": subdevice,
             "entity_category": "diagnostic",
@@ -286,7 +286,7 @@ for channel in range(1, num_channels+1):
         {
             "~": f"{discovery_prefix}/text/{node_id}/{node_id}_ch{channel}_player_name",
             "unique_id": f"{node_id}_ch{channel}_player_name",
-            "name": f"sMA Channel #{channel} Player Name",
+            "name": f"Player Name",
             "object_id": f"{node_id}_ch{channel}_player_name",
             "device": subdevice,
             "entity_category": "config",
@@ -302,7 +302,7 @@ for channel in range(1, num_channels+1):
         entities.append({
             "~": f"{discovery_prefix}/number/{node_id}/{node_id}_ch{channel}_eq{eq_channel_num:02d}_eqsetting",
             "unique_id": f"{node_id}_ch{channel}_eq{eq_channel_num:02d}_eqsetting",
-            "name": f"sMA Channel #{channel} EQ {eq_channel} setting",
+            "name": f"EQ {eq_channel} Setting",
             "object_id": f"{node_id}_ch{channel}_eq{eq_channel_num:02d}_eqsetting",
             "device": subdevice,
             "entity_category": "config",
@@ -317,7 +317,7 @@ for channel in range(1, num_channels+1):
         entities.append({
             "~": f"{discovery_prefix}/button/{node_id}/{node_id}_ch{channel}_eqpreset_{eq_preset}",
             "unique_id": f"{node_id}_ch{channel}_eqpreset_{eq_preset}",
-            "name": f"sMA Channel #{channel} EQ preset {eq_preset}",
+            "name": f"EQ Preset {eq_preset}",
             "object_id": f"{node_id}_ch{channel}_eqpreset_{eq_preset}",
             "device": subdevice,
             "entity_category": "config",
@@ -330,7 +330,7 @@ for channel in range(1, num_channels+1):
         {
             "~": f"{discovery_prefix}/number/{node_id}/{node_id}_ch{channel}_volume",
             "unique_id": f"{node_id}_ch{channel}_volume",
-            "name": f"sMA Channel #{channel} volume",
+            "name": f"Volume",
             "object_id": f"{node_id}_ch{channel}_volume",
             "device": subdevice,
             "entity_category": "config",
@@ -343,7 +343,7 @@ for channel in range(1, num_channels+1):
         {
             "~": f"{discovery_prefix}/text/{node_id}/{node_id}_ch{channel}_hass_switch",
             "unique_id": f"{node_id}_ch{channel}_hass_switch",
-            "name": f"sMA Channel #{channel} external switch",
+            "name": f"Home Assistant Switch",
             "object_id": f"{node_id}_ch{channel}_hass_switch",
             "description": "Home Assistant entity id that should be switched on/off based on player state",
             "device": subdevice,
