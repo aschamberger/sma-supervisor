@@ -31,9 +31,11 @@ RUN apk add caps --repository=http://dl-cdn.alpinelinux.org/alpine/edge/communit
 
 # add group piaudio and docker with gid of underlying raspberry os groups
 RUN addgroup -g 29 -S piaudio \
+    && addgroup -g 997 -S pigpio \
     && addgroup -g 995 -S docker \
     && adduser -S supervisor \
     && addgroup supervisor piaudio \
+    && addgroup squeezelite pigpio \
     && addgroup supervisor docker
 
 # create file to be able to map host asound.conf
