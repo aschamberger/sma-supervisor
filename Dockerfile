@@ -25,7 +25,7 @@ FROM alpine:3.18.3
 ENV LANG C.UTF-8
 
 RUN apk update \
-    && apk add --no-cache tini su-exec python3 py3-pip py3-aiohttp py3-rpigpio py3-zeroconf alsa-utils ladspa docker-cli-compose openssh sshpass
+    && apk add --no-cache tini su-exec python3 py3-pip py3-aiohttp py3-rpigpio py3-zeroconf alsa-utils ladspa docker-cli-compose openssh sshpass libusb
 
 RUN apk add caps --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community/
 
@@ -51,7 +51,8 @@ RUN pip install --no-index --find-links=/wheels dbus-fast
 RUN pip install \
     aiomqtt \
     pysqueezebox \
-    python-dotenv
+    python-dotenv \
+    pyusb
 
 COPY alsa.py /usr/local/bin/alsa.py
 COPY backup.py /usr/local/bin/backup.py

@@ -226,12 +226,11 @@ async def usb_dac_availability():
     sleep_interval = 60 # seconds
     usb_id_dacs = "0d8c:0102"
     usb_id_hub = "1a40:0201"
-    gpio_usb_power = compose.read_config_value("GPIO_USB_POWER")
-    if gpio_usb_power:
-        if GPIO.gpio_function(gpio_usb_power) != GPIO.OUT:
-            GPIO.setup(gpio_usb_power, GPIO.OUT)
-            if not GPIO.input(gpio_usb_power):
-                GPIO.output(gpio_usb_power, 1)
+    if compose.read_config_value("GPIO_USB_POWER") is not None:
+        gpio_usb_power = int(compose.read_config_value("GPIO_USB_POWER"))
+        GPIO.setup(gpio_usb_power, GPIO.OUT)
+        if not GPIO.input(gpio_usb_power):
+            GPIO.output(gpio_usb_power, 1)
         while True:
             try:
                 usb_dac_paths = await power.get_usb_device_paths(usb_id_dacs)
@@ -239,8 +238,7 @@ async def usb_dac_availability():
                     GPIO.output(gpio_usb_power, 0)
                     await asyncio.sleep(5)
                     GPIO.output(gpio_usb_power, 1)
-                    usb_hub_path = await power.get_usb_device_paths(usb_id_hub)
-                    power.reset_usb_device(usb_hub_path[0])
+                    power.reset_usb_device(usb_id_hub)
 
                 await asyncio.sleep(sleep_interval)
 

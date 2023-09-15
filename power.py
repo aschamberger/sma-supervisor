@@ -9,12 +9,8 @@ from dbus_fast import BusType, Message, MessageType, Variant
 from dbus_fast.aio import MessageBus
 
 import asyncio
-import fcntl
 import json
-import os
-
-# Equivalent of the _IO('U', 20) constant in the linux kernel.
-USBDEVFS_RESET = ord('U') << (4*2) | 20
+from usb.core import find as finddev
 
 async def power_off():
     bus = await MessageBus(bus_type=BusType.SYSTEM).connect()
@@ -55,14 +51,11 @@ async def get_usb_device_paths(id):
         print("error")
     return devices
 
-# Sends the USBDEVFS_RESET IOCTL to a USB device.
 # https://gist.github.com/PaulFurtado/fce98aef890469f34d51
-def reset_usb_device(dev_path):
-    fd = os.open(dev_path, os.O_WRONLY)
-    try:
-        fcntl.ioctl(fd, USBDEVFS_RESET, 0)
-    finally:
-        os.close(fd)
+def reset_usb_device(usb_id):
+    idVendor, idProduct = usb_id.split(':')
+    dev = finddev(idVendor=idVendor, idProduct=idProduct)
+    dev.reset()
 
 async def main():
     print('reboot test')
