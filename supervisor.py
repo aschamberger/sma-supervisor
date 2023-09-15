@@ -224,8 +224,8 @@ async def poll_registry_for_container_updates(client, session):
 
 async def usb_dac_availability():
     sleep_interval = 60 # seconds
-    usb_id_dacs = "0d8c:0102"
-    usb_id_hub = "1a40:0201"
+    usb_id_dacs = [0x0d8c, 0x0102]
+    usb_id_hub = [0x1a40, 0x0201]
     if compose.read_config_value("GPIO_USB_POWER") is not None:
         gpio_usb_power = int(compose.read_config_value("GPIO_USB_POWER"))
         GPIO.setup(gpio_usb_power, GPIO.OUT)
@@ -233,8 +233,8 @@ async def usb_dac_availability():
             GPIO.output(gpio_usb_power, 1)
         while True:
             try:
-                usb_dac_paths = await power.get_usb_device_paths(usb_id_dacs)
-                if len(usb_dac_paths) < 2:
+                dac_devices = power.get_usb_devices(usb_id_dacs)
+                if len(list(dac_devices)) < 2:
                     GPIO.output(gpio_usb_power, 0)
                     await asyncio.sleep(5)
                     GPIO.output(gpio_usb_power, 1)
@@ -575,6 +575,7 @@ if __name__ == '__main__':
 
     # set pin numbering mode
     GPIO.setmode(GPIO.BOARD)
+    GPIO.setwarnings(False)
 
     if compose.read_config_value('MQTT_HOST') is not None:
         mqtt_host = compose.read_config_value('MQTT_HOST').split(':')

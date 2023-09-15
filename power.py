@@ -34,27 +34,13 @@ async def reboot():
                 signature='b',
                 body=[True]))
 
-async def get_usb_device_paths(id):
-    devices = []
-    program = [ 'lsusb' ]
-    p = await asyncio.create_subprocess_exec(*program, stdout=asyncio.subprocess.PIPE)
-    stdout, stderr = await p.communicate()
-    if p.returncode == 0:
-        lines = stdout.decode().split('\n')
-        for line in lines:
-            if id in line:
-                parts = line.split()
-                bus = parts[1]
-                dev = parts[3][:3]
-                devices.append(f"/dev/bus/usb/{bus}/{dev}")
-    else:
-        print("error")
+def get_usb_devices(usb_id):
+    devices = finddev(find_all=True,idVendor=usb_id[0], idProduct=usb_id[1])
     return devices
 
 # https://gist.github.com/PaulFurtado/fce98aef890469f34d51
 def reset_usb_device(usb_id):
-    idVendor, idProduct = usb_id.split(':')
-    dev = finddev(idVendor=idVendor, idProduct=idProduct)
+    dev = finddev(idVendor=usb_id[0], idProduct=usb_id[1])
     dev.reset()
 
 async def main():
