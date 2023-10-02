@@ -1,4 +1,4 @@
-FROM alpine:3.18.3 as builder
+FROM alpine:3.18.4 as builder
 
 ENV LANG C.UTF-8
 
@@ -20,7 +20,7 @@ RUN mkdir /wheels
 RUN pip install wheel \
     && pip wheel --wheel-dir=/wheels dbus-fast
 
-FROM alpine:3.18.3
+FROM alpine:3.18.4
 
 ENV LANG C.UTF-8
 
