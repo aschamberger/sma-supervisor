@@ -17,6 +17,7 @@ RUN cd /usr/local/src \
 
 RUN mkdir /wheels
 
+ENV PIP_BREAK_SYSTEM_PACKAGES 1
 RUN pip install wheel \
     && pip wheel --wheel-dir=/wheels dbus-fast
 
