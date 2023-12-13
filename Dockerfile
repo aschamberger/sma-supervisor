@@ -46,6 +46,7 @@ COPY --from=builder /usr/lib/alsa-lib/libasound_module_ctl_equal.so /usr/lib/als
 
 COPY --from=builder /wheels /wheels
 
+ENV PIP_BREAK_SYSTEM_PACKAGES 1
 RUN pip install --no-index --find-links=/wheels dbus-fast
 
 RUN pip install \
