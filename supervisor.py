@@ -196,14 +196,14 @@ async def poll_registry_for_container_updates(client, session):
     while True:
         try:
             for service in services:
-                is_local = await is_local_build(service)
+                is_local = await compose.is_local_build(service)
                 if not is_local:
-                    image = await image_from_compose_service(service)
-                    local_digest = await image_digest_local(image)
-                    base_url, tag, token = await image_registry_auth(session, image)
-                    remote_digest = await image_digest_remote(session, base_url, token, tag)
+                    image = await compose.image_from_compose_service(service)
+                    local_digest = await compose.image_digest_local(image)
+                    base_url, tag, token = await compose.image_registry_auth(session, image)
+                    remote_digest = await compose.image_digest_remote(session, base_url, token, tag)
                     if "latest" in image:
-                        installed, latest = await get_image_versions(session, base_url, token, local_digest, remote_digest)
+                        installed, latest = await compose.get_image_versions(session, base_url, token, local_digest, remote_digest)
                         state = {
                             "installed_version": installed,
                             "latest_version": latest,

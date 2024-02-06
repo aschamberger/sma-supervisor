@@ -128,7 +128,7 @@ So backup is done via user auth using https://pkgs.alpinelinux.org/packages?name
 Links:
 * https://docs.python.org/3/library/asyncio-subprocess.html#asyncio-subprocess
 * https://csatlas.com/python-subprocess-run-exec-system-command/
-* does not seem to support equalizer at first impression: http://larsimmisch.github.io/pyalsaaudio/libalsaaudio.html
+* does not support equalizer until now: http://larsimmisch.github.io/pyalsaaudio/libalsaaudio.html
 
 ### Docker image handling
 
