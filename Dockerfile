@@ -1,25 +1,33 @@
 FROM alpine:3.19.0 as builder
 
+#ARG ALSAEQUAL_VERSION=master
+# use older commit to be compatible with version from raspberry pi OS
+ARG ALSAEQUAL_VERSION=0e9c8c3ed426464609114b9402b71b4cc0edabc9
+
 ENV LANG C.UTF-8
 
 RUN apk update \
-    && apk add --no-cache build-base alsa-lib-dev linux-headers python3 python3-dev py3-pip
+    && apk add --no-cache build-base alsa-lib-dev linux-headers
 
 RUN mkdir -p /usr/local/src
 
 RUN cd /usr/local/src \
-    && wget https://github.com/raedwulf/alsaequal/archive/refs/heads/master.zip -O alsaequal.zip \
+    # && wget https://github.com/raedwulf/alsaequal/archive/0e9c8c3ed426464609114b9402b71b4cc0edabc9.zip -O alsaequal.zip \
+    && wget https://github.com/raedwulf/alsaequal/archive/$ALSAEQUAL_VERSION.zip -O alsaequal.zip \
     && unzip alsaequal.zip \
-    && cd alsaequal-master \
+    && cd alsaequal-$ALSAEQUAL_VERSION \
     && make \
     && mkdir -p /usr/lib/alsa-lib \
     && make install
 
-RUN mkdir /wheels
+#RUN apk update \
+#    && apk add --no-cache python3 python3-dev py3-pip
 
-ENV PIP_BREAK_SYSTEM_PACKAGES 1
-RUN pip install wheel \
-    && pip wheel --wheel-dir=/wheels dbus-fast
+#RUN mkdir /wheels
+
+#ENV PIP_BREAK_SYSTEM_PACKAGES 1
+#RUN pip install wheel \
+#    && pip wheel --wheel-dir=/wheels dbus-fast
 
 FROM alpine:3.19.0
 
@@ -45,13 +53,15 @@ RUN touch /etc/asound.conf
 COPY --from=builder /usr/lib/alsa-lib/libasound_module_pcm_equal.so /usr/lib/alsa-lib/libasound_module_pcm_equal.so
 COPY --from=builder /usr/lib/alsa-lib/libasound_module_ctl_equal.so /usr/lib/alsa-lib/libasound_module_ctl_equal.so
 
-COPY --from=builder /wheels /wheels
+#COPY --from=builder /wheels /wheels
 
 ENV PIP_BREAK_SYSTEM_PACKAGES 1
-RUN pip install --no-index --find-links=/wheels dbus-fast
+ENV SKIP_CYTHON 1
+#RUN pip install --no-index --find-links=/wheels dbus-fast
 
 RUN pip install \
     aiomqtt \
+    dbus-fast \
     pysqueezebox \
     python-dotenv \
     pyusb
