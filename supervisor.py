@@ -497,67 +497,66 @@ async def main():
                 background_tasks.add(task3)
                 task3.add_done_callback(background_tasks.discard)
 
-                async with client.messages() as messages:
-                    for subscription in subscriptions:
-                        await client.subscribe(subscription)
-                    # subscribe to 'homeassistant/status'
-                    await client.subscribe("homeassistant/status")
-                    async for message in messages:
-                        # republish all data when homeassistant/status online
-                        if message.topic.matches("homeassistant/status"):
-                            if message.payload.decode() == "online":
-                                await publish_gpio_config(client)
-                                await publish_backup_config(client)
-                                await publish_hass_config(client)
-                                await publish_mqtt_config(client)
-                                await publish_lms_config(client)
-                                await publish_hass_switch(client)
-                                await publish_volume(client)
-                                await publish_equalizer_settings(client)
-                                await publish_player_names_from_name_files(client)
-                        else:
-                            # handle subscriptions and map to function calls
-                            topic_levels = str(message.topic).split('/')
-                            cmd = topic_levels[-1] # 'do' or 'set'
-                            object_id = topic_levels[-2]
-                            action = object_id[len(node_id)+1:] # remove node_id from beginning
-                            channel = None
-                            eq_channel = None
-                            # extract channel if action on channel
-                            if action[0:2] == 'ch' and action[4:5] == '_':
-                                channel = int(action[2:4])
+                for subscription in subscriptions:
+                    await client.subscribe(subscription)
+                # subscribe to 'homeassistant/status'
+                await client.subscribe("homeassistant/status")
+                async for message in client.messages:
+                    # republish all data when homeassistant/status online
+                    if message.topic.matches("homeassistant/status"):
+                        if message.payload.decode() == "online":
+                            await publish_gpio_config(client)
+                            await publish_backup_config(client)
+                            await publish_hass_config(client)
+                            await publish_mqtt_config(client)
+                            await publish_lms_config(client)
+                            await publish_hass_switch(client)
+                            await publish_volume(client)
+                            await publish_equalizer_settings(client)
+                            await publish_player_names_from_name_files(client)
+                    else:
+                        # handle subscriptions and map to function calls
+                        topic_levels = str(message.topic).split('/')
+                        cmd = topic_levels[-1] # 'do' or 'set'
+                        object_id = topic_levels[-2]
+                        action = object_id[len(node_id)+1:] # remove node_id from beginning
+                        channel = None
+                        eq_channel = None
+                        # extract channel if action on channel
+                        if action[0:2] == 'ch' and action[4:5] == '_':
+                            channel = int(action[2:4])
+                            action = action[5:]
+                            # extract eq_channel if action on eq_channel
+                            if action[0:2] == 'eq' and action[4:5] == '_':
+                                eq_channel = int(action[2:4])
                                 action = action[5:]
-                                # extract eq_channel if action on eq_channel
-                                if action[0:2] == 'eq' and action[4:5] == '_':
-                                    eq_channel = int(action[2:4])
-                                    action = action[5:]
 
-                            # call desired function
-                            function = f"{cmd}_{action}"
-                            if (globals()[function]):
-                                await globals()[function](client, lms_server, message.payload.decode(), channel, eq_channel)
-                                if function == "set_lms_host" or function == "set_mqtt_host":
-                                    task1.cancel()
-                                    task2.cancel()
-                                    task3.cancel()
-                                    task4.cancel()
-                                    continue
-                                if function == "do_update_supervisor":
-                                    # restart version checking to publish latest version state
-                                    coro = task3.get_coro()
-                                    task3.cancel()
-                                    task3 = asyncio.create_task(coro)
-                                    background_tasks.add(task3)
-                                    task3.add_done_callback(background_tasks.discard)
-                                if function == "set_gpio_usb_dac":
-                                    # restart dac checking on gpio change
-                                    coro = task4.get_coro()
-                                    task4.cancel()
-                                    task4 = asyncio.create_task(coro)
-                                    background_tasks.add(task4)
-                                    task4.add_done_callback(background_tasks.discard)
-                            else:
-                                print(f'Error: function {function} does not exist.')
+                        # call desired function
+                        function = f"{cmd}_{action}"
+                        if (globals()[function]):
+                            await globals()[function](client, lms_server, message.payload.decode(), channel, eq_channel)
+                            if function == "set_lms_host" or function == "set_mqtt_host":
+                                task1.cancel()
+                                task2.cancel()
+                                task3.cancel()
+                                task4.cancel()
+                                continue
+                            if function == "do_update_squeezelite":
+                                # restart version checking to publish latest version state
+                                coro = task3.get_coro()
+                                task3.cancel()
+                                task3 = asyncio.create_task(coro)
+                                background_tasks.add(task3)
+                                task3.add_done_callback(background_tasks.discard)
+                            if function == "set_gpio_usb_dac":
+                                # restart dac checking on gpio change
+                                coro = task4.get_coro()
+                                task4.cancel()
+                                task4 = asyncio.create_task(coro)
+                                background_tasks.add(task4)
+                                task4.add_done_callback(background_tasks.discard)
+                        else:
+                            print(f'Error: function {function} does not exist.')
 
         except aiomqtt.MqttError as error:
             print(f'Error "{error}". Reconnecting in {reconnect_interval} seconds.')
