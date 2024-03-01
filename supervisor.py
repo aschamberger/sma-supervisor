@@ -237,9 +237,12 @@ async def usb_dac_availability():
                 if len(list(dac_devices)) < 2:
                     # mute and turn off relay
                     for channel in range(1, num_channels+1):
-                        gpio = compose.read_config_value(f"GPIO_CH{channel}_MUTE")                    
-                        GPIO.output(gpio, 1)
-                    relay = compose.read_config_value("GPIO_PSU_RELAY")
+                        if compose.read_config_value(f"GPIO_CH{channel}_MUTE") is not None:
+                            gpio = int(compose.read_config_value(f"GPIO_CH{channel}_MUTE"))
+                            GPIO.setup(gpio, GPIO.OUT)
+                            GPIO.output(gpio, 1)
+                    relay = int(compose.read_config_value("GPIO_PSU_RELAY"))
+                    GPIO.setup(relay, GPIO.OUT)
                     GPIO.output(relay, 0)
                     # power down+up usb hub and reset
                     GPIO.output(gpio_usb_power, 0)
