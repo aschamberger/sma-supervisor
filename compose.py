@@ -199,6 +199,17 @@ async def image_prune():
     else:
         print("error")
 
+async def trigger_watchtower(session, port, token):
+    url = f"http://127.0.0.1:{port}/v1/update"
+    headers = {
+        "Authorization": f"Bearer {token}"
+    }
+    async with session.get(url, headers=headers) as response:
+        print(response.status)
+        print(await response.text())
+        
+    return None
+
 def read_config_value(key):
     value = get_key(envFile, key)
     if len(value) == 0:

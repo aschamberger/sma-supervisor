@@ -253,7 +253,7 @@ entities = [
     {
         "~": f"{discovery_prefix}/update/{node_id}/{node_id}_update_squeezelite",
         "unique_id": f"{node_id}_update_squeezelite",
-        "name": "Update Supervisor",
+        "name": "Update SqueezeLite",
         "object_id": f"{node_id}_update_squeezelite",
         "device": device,
         "entity_category": "config",

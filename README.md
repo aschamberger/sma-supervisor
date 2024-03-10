@@ -9,6 +9,7 @@ Features:
 * rootless via [su-exec](https://github.com/ncopa/su-exec)
 * supports [alsaequal](https://github.com/raedwulf/alsaequal)
 * check for new container images on github container registry
+* update container using https://containrrr.dev/watchtower/
 * check for existance of both usb dacs and make hard device power cut for usb ports (=DACs) + usb device reset for usb hub
 
 Configuration/control options:

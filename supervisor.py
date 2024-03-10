@@ -241,9 +241,11 @@ async def usb_dac_availability():
                             gpio = int(compose.read_config_value(f"GPIO_CH{channel}_MUTE"))
                             GPIO.setup(gpio, GPIO.OUT)
                             GPIO.output(gpio, 1)
-                    relay = int(compose.read_config_value("GPIO_PSU_RELAY"))
-                    GPIO.setup(relay, GPIO.OUT)
-                    GPIO.output(relay, 0)
+                    # power down PSU
+                    if compose.read_config_value("GPIO_PSU_RELAY") is not None:
+                        relay = int(compose.read_config_value("GPIO_PSU_RELAY"))
+                        GPIO.setup(relay, GPIO.OUT)
+                        GPIO.output(relay, 0)
                     # power down+up usb hub and reset
                     GPIO.output(gpio_usb_power, 0)
                     await asyncio.sleep(5)
@@ -279,19 +281,27 @@ async def do_remote_backup(client, lms_server, payload, channel, eq_channel):
     await backup.copy_backup_to_remote()
     backup.delete_local_backup()
 
-async def do_update_supervisor(client, lms_server, payload, channel, eq_channel):
-    image = await compose.image_from_compose_service("supervisor")
-    await compose.image_pull(image)
-    # power off all players to prevent speaker plopp
-    power_off_lms_players(lms_server)
-    await power.reboot()
+async def do_update_supervisor(session, lms_server):
+    is_local = await compose.is_local_build("supervisor")
+    if not is_local:
+        if compose.read_config_value("WATCHTOWER_SUPERVISOR_PORT") is not None:
+            # power off all players to prevent speaker plopp
+            power_off_lms_players(lms_server)
+            # trigger container update
+            port = compose.read_config_value("WATCHTOWER_SUPERVISOR_PORT")
+            token = compose.read_config_value("WATCHTOWER_API_TOKEN")
+            compose.trigger_watchtower(session, port, token)
 
-async def do_update_squeezelite(client, lms_server, payload, channel, eq_channel):
-    image = await compose.image_from_compose_service("squeezelite")
-    await compose.image_pull(image)
-    # power off all players to prevent speaker plopp
-    power_off_lms_players(lms_server)
-    await compose.up("on", True, "squeezelite")
+async def do_update_squeezelite(session, lms_server):
+    is_local = await compose.is_local_build("squeezelite")
+    if not is_local:
+        if compose.read_config_value("WATCHTOWER_SQUEEZELITE_PORT") is not None:
+            # power off all players to prevent speaker plopp
+            power_off_lms_players(lms_server)
+            # trigger container update
+            port = compose.read_config_value("WATCHTOWER_SQUEEZELITE_PORT")
+            token = compose.read_config_value("WATCHTOWER_API_TOKEN")
+            compose.trigger_watchtower(session, port, token)
 
 async def set_lms_host(client, lms_server, payload, channel, eq_channel):
     if (":" not in payload):
@@ -537,14 +547,18 @@ async def main():
                         # call desired function
                         function = f"{cmd}_{action}"
                         if (globals()[function]):
-                            await globals()[function](client, lms_server, message.payload.decode(), channel, eq_channel)
+                            # special handling of container update functions
+                            if function == "do_update_squeezelite" or function == "do_update_supervisor":
+                                await globals()[function](session, lms_server)
+                            else:
+                                await globals()[function](client, lms_server, message.payload.decode(), channel, eq_channel)
                             if function == "set_lms_host" or function == "set_mqtt_host":
                                 task1.cancel()
                                 task2.cancel()
                                 task3.cancel()
                                 task4.cancel()
                                 continue
-                            if function == "do_update_squeezelite":
+                            if function == "do_update_squeezelite" or function == "do_update_supervisor":
                                 # restart version checking to publish latest version state
                                 coro = task3.get_coro()
                                 task3.cancel()
