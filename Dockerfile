@@ -1,4 +1,4 @@
-FROM alpine:3.20.2 as builder
+FROM alpine:3.20.3 as builder
 
 #ARG ALSAEQUAL_VERSION=master
 # use older commit to be compatible with version from raspberry pi OS
@@ -29,7 +29,7 @@ RUN cd /usr/local/src \
 #RUN pip install wheel \
 #    && pip wheel --wheel-dir=/wheels dbus-fast
 
-FROM alpine:3.20.2
+FROM alpine:3.20.3
 
 ENV LANG C.UTF-8
 
