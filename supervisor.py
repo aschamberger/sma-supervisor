@@ -273,7 +273,7 @@ async def do_restart(client, lms_server, payload, channel, eq_channel):
 
 async def do_compose_recreate(client, lms_server, payload, channel, eq_channel):
     # power off all players to prevent speaker plopp
-    power_off_lms_players(lms_server)
+    await power_off_lms_players(lms_server)
     await compose.up("on", True)
 
 async def do_remote_backup(client, lms_server, payload, channel, eq_channel):
@@ -286,7 +286,7 @@ async def do_update_supervisor(session, lms_server):
     if not is_local:
         if compose.read_config_value("WATCHTOWER_SUPERVISOR_PORT") is not None:
             # power off all players to prevent speaker plopp
-            power_off_lms_players(lms_server)
+            await power_off_lms_players(lms_server)
             # trigger container update
             port = compose.read_config_value("WATCHTOWER_SUPERVISOR_PORT")
             token = compose.read_config_value("WATCHTOWER_API_TOKEN")
@@ -297,7 +297,7 @@ async def do_update_squeezelite(session, lms_server):
     if not is_local:
         if compose.read_config_value("WATCHTOWER_SQUEEZELITE_PORT") is not None:
             # power off all players to prevent speaker plopp
-            power_off_lms_players(lms_server)
+            await power_off_lms_players(lms_server)
             # trigger container update
             port = compose.read_config_value("WATCHTOWER_SQUEEZELITE_PORT")
             token = compose.read_config_value("WATCHTOWER_API_TOKEN")
