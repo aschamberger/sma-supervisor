@@ -21,7 +21,9 @@ async def create_local_backup():
     p = await asyncio.create_subprocess_exec(*program, stdout=asyncio.subprocess.PIPE)
     stdout, stderr = await p.communicate()
     if p.returncode == 0:
-        print(stdout.decode())
+        out = stdout.decode()
+        if "removing leading '/' from member names" not in out:
+            print(out)
     else:
         print("error")
 
@@ -34,7 +36,9 @@ async def copy_backup_to_remote():
     p = await asyncio.create_subprocess_exec(*program, stdout=asyncio.subprocess.PIPE)
     stdout, stderr = await p.communicate()
     if p.returncode == 0:
-        print(stdout.decode())
+        out = stdout.decode()
+        if "Permanently added" not in out:
+            print(out)
     else:
         print("error")
 
