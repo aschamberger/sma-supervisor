@@ -183,8 +183,11 @@ async def publish_container_states(client):
                 if channels[channel-1] != state:
                     channels[channel-1] = state
                     topic = f"{discovery_prefix}/binary_sensor/{node_id}/{node_id}_ch{channel:02d}/state"
-                    await client.publish(topic, payload=state)
-
+                    try:
+                        await client.publish(topic, payload=state)
+                    except aiomqtt.MqttCodeError as error:
+                        print(f'Error "{error}".')             
+                        
             await asyncio.sleep(sleep_interval)
 
         except asyncio.CancelledError as error:
@@ -576,6 +579,10 @@ async def main():
                             print(f'Error: function {function} does not exist.')
 
         except aiomqtt.MqttError as error:
+            task1.cancel()
+            task2.cancel()
+            task3.cancel()
+            task4.cancel()
             print(f'Error "{error}". Reconnecting in {reconnect_interval} seconds.')
             await asyncio.sleep(reconnect_interval)
 
