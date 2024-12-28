@@ -264,14 +264,24 @@ async def power_off_lms_players(lms_server):
     for channel in range(1, num_channels+1):
         await lms_server.async_query("power", "0", player=lms_players[channel-1])
 
+async def publish_container_states_off(client):
+    topic = f"{discovery_prefix}/binary_sensor/{node_id}/{node_id}_supervisor/state"
+    await client.publish(topic, payload="OFF")
+
+    for channel in range(1, num_channels+1):
+        topic = f"{discovery_prefix}/binary_sensor/{node_id}/{node_id}_ch{channel:02d}/state"
+        await client.publish(topic, payload="OFF")  
+
 async def do_shutdown(client, lms_server, payload, channel, eq_channel):
     # power off all players to prevent speaker plopp
     await power_off_lms_players(lms_server)
+    await publish_container_states_off(client)
     await power.power_off()
 
 async def do_restart(client, lms_server, payload, channel, eq_channel):
     # power off all players to prevent speaker plopp
     await power_off_lms_players(lms_server)
+    await publish_container_states_off(client)
     await power.reboot()
 
 async def do_compose_recreate(client, lms_server, payload, channel, eq_channel):
@@ -550,16 +560,20 @@ async def main():
                         # call desired function
                         function = f"{cmd}_{action}"
                         if (globals()[function]):
+                            # cancel all background tasks before restart/shutdown
+                            if function == "do_restart" or function == "do_shutdown":
+                                for task in background_tasks:
+                                    task.cancel()
+                                continue
                             # special handling of container update functions
                             if function == "do_update_squeezelite" or function == "do_update_supervisor":
                                 await globals()[function](session, lms_server)
                             else:
                                 await globals()[function](client, lms_server, message.payload.decode(), channel, eq_channel)
+                            # cancel all tasks and reconnect
                             if function == "set_lms_host" or function == "set_mqtt_host":
-                                task1.cancel()
-                                task2.cancel()
-                                task3.cancel()
-                                task4.cancel()
+                                for task in background_tasks:
+                                    task.cancel()
                                 continue
                             if function == "do_update_squeezelite" or function == "do_update_supervisor":
                                 # restart version checking to publish latest version state
