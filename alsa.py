@@ -10,7 +10,7 @@ async def alsactl_store():
     if p.returncode == 0:
         return stdout
     else:
-        print("error")
+        print("error storing alsa settings")
 
 async def get_equalizer(channel):
     device = f"ch{channel}_eq"
@@ -21,7 +21,8 @@ async def get_equalizer(channel):
     if p.returncode == 0:
         return extract_equalizer_settings(stdout.decode())
     else:
-        print("error")
+        print("error getting equalizer")
+        return None
 
 async def set_equalizer(channel, settings):
     commands = ("sset '00. 31 Hz' " + settings[0] + "\n"
@@ -44,7 +45,8 @@ async def set_equalizer(channel, settings):
     if p.returncode == 0:
         return extract_equalizer_settings(stdout.decode())
     else:
-      print("error")
+      print("error setting equalizer")
+      return None
 
 async def set_equalizer_channel(channel, eq_channel, setting):
     settings = ['0+', '0+', '0+', '0+', '0+', '0+', '0+', '0+', '0+', '0+']
@@ -69,15 +71,18 @@ def extract_equalizer_settings(result):
 async def get_all_device_volumes():
     cardA = await get_device_volumes("hw:CARD=SND_A")
     cardB = await get_device_volumes("hw:CARD=SND_B")
-    volumes = [cardA[0],
-        cardA[2],
-        cardA[4],
-        cardA[6],
-        cardB[0],
-        cardB[2],
-        cardB[4],
-        cardB[6]]
-    return volumes
+    if cardA != None and cardB != None:
+        volumes = [cardA[0],
+            cardA[2],
+            cardA[4],
+            cardA[6],
+            cardB[0],
+            cardB[2],
+            cardB[4],
+            cardB[6]]
+        return volumes
+    else:
+      return None
 
 async def get_device_volumes(device):
     # amixer -D hw:CARD=SND_A get Speaker
@@ -89,7 +94,8 @@ async def get_device_volumes(device):
     if p.returncode == 0:
       return extract_volume_settings(stdout.decode())
     else:
-      print("error")
+      print("error getting volume")
+      return None
 
 async def set_channel_volume(channel, volume):
     channel = int(channel)
@@ -130,7 +136,8 @@ async def set_channel_volume(channel, volume):
         volumes = extract_volume_settings(stdout.decode())
         return volumes[returnIndex]
     else:
-        print("error")
+        print("error setting volume")
+        return None
 
 def extract_volume_settings(result):
     lines = result.split("\n")
