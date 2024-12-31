@@ -1,4 +1,4 @@
-FROM alpine:3.20.3 as builder
+FROM alpine:3.20.3 AS builder
 
 #ARG ALSAEQUAL_VERSION=master
 # use older commit to be compatible with version from raspberry pi OS
@@ -20,21 +20,31 @@ RUN cd /usr/local/src \
     && mkdir -p /usr/lib/alsa-lib \
     && make install
 
-#RUN apk update \
-#    && apk add --no-cache python3 python3-dev py3-pip
+RUN apk update \
+    && apk add --no-cache python3 python3-dev py3-pip py3-setuptools swig
 
-#RUN mkdir /wheels
+RUN mkdir /wheels
+
+# https://github.com/joan2937/lg/pull/25
+RUN cd /usr/local/src \
+    && wget https://github.com/joan2937/lg/archive/master.zip \
+    && unzip master.zip \
+    && cd lg-master \
+    && cd PY_LGPIO \
+    && PYPI=1 python3 -m build . \
+    && cd dist/ \
+    && cp *.whl -t /wheels
 
 #ENV PIP_BREAK_SYSTEM_PACKAGES 1
 #RUN pip install wheel \
-#    && pip wheel --wheel-dir=/wheels dbus-fast
+#    && pip wheel --wheel-dir=/wheels lgpio
 
 FROM alpine:3.20.3
 
 ENV LANG C.UTF-8
 
 RUN apk update \
-    && apk add --no-cache tini su-exec python3 py3-pip py3-aiohttp py3-rpigpio py3-zeroconf alsa-utils ladspa docker-cli-compose openssh sshpass libusb
+    && apk add --no-cache tini su-exec python3 py3-pip py3-aiohttp py3-zeroconf alsa-utils ladspa docker-cli-compose openssh sshpass libusb
 
 RUN apk add caps --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community/
 
@@ -53,11 +63,11 @@ RUN touch /etc/asound.conf
 COPY --from=builder /usr/lib/alsa-lib/libasound_module_pcm_equal.so /usr/lib/alsa-lib/libasound_module_pcm_equal.so
 COPY --from=builder /usr/lib/alsa-lib/libasound_module_ctl_equal.so /usr/lib/alsa-lib/libasound_module_ctl_equal.so
 
-#COPY --from=builder /wheels /wheels
+COPY --from=builder /wheels /wheels
 
 ENV PIP_BREAK_SYSTEM_PACKAGES 1
 ENV SKIP_CYTHON 1
-#RUN pip install --no-index --find-links=/wheels dbus-fast
+RUN pip install --no-index --find-links=/wheels lgpio
 
 RUN pip install \
     aiomqtt \
@@ -66,15 +76,20 @@ RUN pip install \
     python-dotenv \
     pyusb
 
-COPY alsa.py /usr/local/bin/alsa.py
-COPY backup.py /usr/local/bin/backup.py
-COPY compose.py /usr/local/bin/compose.py
-COPY config.py /usr/local/bin/config.py
-COPY lms.py /usr/local/bin/lms.py
-COPY power.py /usr/local/bin/power.py
-COPY supervisor.py /usr/local/bin/supervisor.py
-COPY supervisor.sh /usr/local/bin/supervisor.sh
-RUN chmod +x /usr/local/bin/supervisor.sh
+WORKDIR /usr/local/bin
+COPY alsa.py alsa.py
+COPY backup.py backup.py
+COPY compose.py compose.py
+COPY config.py config.py
+COPY lms.py lms.py
+COPY power.py power.py
+COPY supervisor.py supervisor.py
+COPY supervisor.sh supervisor.sh
+RUN chmod +x supervisor.sh
+
+RUN touch .lgd-nfy0
+RUN chown root:nogroup .lgd-nfy0
+RUN chmod 0777 .lgd-nfy0
 
 ENTRYPOINT [ "/sbin/tini", "--" ]
 CMD [ "supervisor.sh" ]
