@@ -46,13 +46,13 @@ def reset_usb_device(usb_id):
 async def main():
     print('reboot test')
 
-    usb_id_dacs = "0d8c:0102"
-    usb_id_hub = "1a40:0201"
+    usb_id_dacs = [0x0d8c, 0x0102]
+    usb_id_hub = [0x1a40, 0x0201]
 
-    devices = await get_usb_device_paths(usb_id_dacs)
+    devices = get_usb_devices(usb_id_dacs)
     print(devices)
 
-    devices = await get_usb_device_paths(usb_id_hub)
+    devices = get_usb_devices(usb_id_hub)
     print(devices)
 
     #await reboot()
