@@ -21,7 +21,7 @@ RUN cd /usr/local/src \
     && make install
 
 RUN apk update \
-    && apk add --no-cache python3 python3-dev py3-pip py3-setuptools swig
+    && apk add --no-cache python3 python3-dev py3-pip py3-build py3-setuptools swig
 
 RUN mkdir /wheels
 
