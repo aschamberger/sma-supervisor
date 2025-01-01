@@ -590,7 +590,6 @@ async def main():
                             if function == "do_restart" or function == "do_shutdown":
                                 for task in background_tasks:
                                     task.cancel()
-                                continue
                             # special handling of container update functions
                             if function == "do_update_squeezelite" or function == "do_update_supervisor":
                                 await globals()[function](session, lms_server)
