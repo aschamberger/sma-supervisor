@@ -10,7 +10,7 @@ import aiomqtt
 import alsa
 import backup
 import compose
-import lgpio
+import gpio
 import lms
 import power
 from config import (
@@ -25,33 +25,6 @@ from config import (
 )
 from pysqueezebox import Server as LmsServer
 from zeroconf import ServiceBrowser, Zeroconf
-
-_lgpio_chip = None
-_BOARD_MAP = {
-    3: 2, 5: 3, 7: 4, 8: 14, 10: 15, 11: 17, 12: 18, 13: 27, 15: 22, 16: 23,
-    18: 24, 19: 10, 21: 9, 22: 25, 23: 11, 24: 8, 26: 7, 29: 5, 31: 6, 32: 12,
-    33: 13, 35: 19, 36: 16, 37: 26, 38: 20, 40: 21,
-}
-
-def _lgpio_check(result):
-    if result < 0:
-        raise RuntimeError(lgpio.error_text(result))
-    return result
-
-def _set_gpio_out(board_number):
-    gpio = _BOARD_MAP[board_number]
-    mode = _lgpio_check(lgpio.gpio_get_mode(_lgpio_chip, gpio))
-    if not mode & 0x2:
-        initial = _lgpio_check(lgpio.gpio_read(_lgpio_chip, gpio))
-        _lgpio_check(lgpio.gpio_claim_output(_lgpio_chip, gpio, initial, lgpio.SET_PULL_NONE))
-
-def _gpio_input(board_number):
-    gpio = _BOARD_MAP[board_number]
-    return _lgpio_check(lgpio.gpio_read(_lgpio_chip, gpio))
-
-def _gpio_output(board_number, value):
-    gpio = _BOARD_MAP[board_number]
-    _lgpio_check(lgpio.gpio_write(_lgpio_chip, gpio, value))
 
 # publish entities for mqtt discovery
 async def publish_entities(client):
@@ -259,26 +232,27 @@ async def usb_dac_availability():
     usb_id_hub = [0x1a40, 0x0201]
     if compose.read_config_value("GPIO_USB_POWER") is not None:
         gpio_usb_power = int(compose.read_config_value("GPIO_USB_POWER"))
-        if not _gpio_input(gpio_usb_power):
-            _gpio_output(gpio_usb_power, True)
+        is_powered = await gpio.get(gpio_usb_power)
+        if not is_powered:
+            await gpio.set(gpio_usb_power, 1)
         while True:
             try:
                 dac_devices = power.get_usb_devices(usb_id_dacs)
                 if len(list(dac_devices)) < 2:
-                    # mute and turn off relay
+                    # mute all channels
                     for channel in range(1, num_channels+1):
                         if compose.read_config_value(f"GPIO_CH{channel}_MUTE") is not None:
-                            gpio = int(compose.read_config_value(f"GPIO_CH{channel}_MUTE"))
-                            _gpio_output(gpio, True)
+                            gpio_mute = int(compose.read_config_value(f"GPIO_CH{channel}_MUTE"))
+                            await gpio.set(gpio_mute, 0)
                     # power down PSU
                     if compose.read_config_value("GPIO_PSU_RELAY") is not None:
-                        relay = int(compose.read_config_value("GPIO_PSU_RELAY"))
-                        _gpio_output(relay, False)
+                        gpio_relay = int(compose.read_config_value("GPIO_PSU_RELAY"))
+                        await gpio.set(gpio_relay, 0)
                     # power down+up usb hub and reset
                     gpio_usb_power = int(compose.read_config_value("GPIO_USB_POWER"))
-                    _gpio_output(gpio_usb_power, False)
+                    await gpio.set(gpio_usb_power, 0)
                     await asyncio.sleep(5)
-                    _gpio_output(gpio_usb_power, True)
+                    await gpio.set(gpio_usb_power, 1)
                     power.reset_usb_device(usb_id_hub)
 
                 await asyncio.sleep(sleep_interval)
@@ -635,20 +609,17 @@ def find_mqtt_service(self, zeroconf, service_type, name, state_change):
 if __name__ == '__main__':
     print('Starting supervisor')
 
-    # init variable
-    _lgpio_chip = _lgpio_check(lgpio.gpiochip_open(0))
-
     # set up GPIOs
     if compose.read_config_value("GPIO_USB_POWER") is not None:
         board_number = int(compose.read_config_value("GPIO_USB_POWER"))
-        _set_gpio_out(board_number)
+        await gpio.init(board_number, "output")
     if compose.read_config_value("GPIO_PSU_RELAY") is not None:
         board_number = int(compose.read_config_value("GPIO_PSU_RELAY"))
-        _set_gpio_out(board_number)
+        await gpio.init(board_number, "output")
     for channel in range(1, num_channels+1):
         if compose.read_config_value(f"GPIO_CH{channel}_MUTE") is not None:
             board_number = int(compose.read_config_value(f"GPIO_CH{channel}_MUTE"))
-            _set_gpio_out(board_number)
+            await gpio.init(board_number, "output", True)
 
     if compose.read_config_value('MQTT_HOST') is not None:
         mqtt_host = compose.read_config_value('MQTT_HOST').split(':')

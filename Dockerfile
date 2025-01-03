@@ -59,6 +59,7 @@ COPY alsa.py alsa.py
 COPY backup.py backup.py
 COPY compose.py compose.py
 COPY config.py config.py
+COPY gpio.py gpio.py
 COPY lms.py lms.py
 COPY power.py power.py
 COPY supervisor.py supervisor.py
