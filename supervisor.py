@@ -606,10 +606,7 @@ def find_mqtt_service(self, zeroconf, service_type, name, state_change):
     elif state_change is ServiceStateChange.Removed:
         pass
 
-if __name__ == '__main__':
-    print('Starting supervisor')
-
-    # set up GPIOs
+async def set_up_gpios():
     if compose.read_config_value("GPIO_USB_POWER") is not None:
         board_number = int(compose.read_config_value("GPIO_USB_POWER"))
         await gpio.init(board_number, "output")
@@ -619,8 +616,15 @@ if __name__ == '__main__':
     for channel in range(1, num_channels+1):
         if compose.read_config_value(f"GPIO_CH{channel}_MUTE") is not None:
             board_number = int(compose.read_config_value(f"GPIO_CH{channel}_MUTE"))
-            await gpio.init(board_number, "output", True)
+            await gpio.init(board_number, "output", True)  
 
+if __name__ == '__main__':
+    print('Starting supervisor')
+
+    # set up GPIOs
+    asyncio.run(set_up_gpios())
+
+    # discover MQTT
     if compose.read_config_value('MQTT_HOST') is not None:
         mqtt_host = compose.read_config_value('MQTT_HOST').split(':')
         if len(mqtt_host) == 1:
@@ -634,6 +638,7 @@ if __name__ == '__main__':
         if compose.read_config_value('MQTT_HOST') is None:
             sys.exit('No mqtt broker could be discovered via zeroconf and no config given manually')
 
+    # discover LMS
     if compose.read_config_value('LMS_HOST') is not None:
         lms_host = compose.read_config_value('LMS_HOST').split(':')
         if len(lms_host) == 1:
