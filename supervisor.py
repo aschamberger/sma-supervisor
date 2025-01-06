@@ -239,14 +239,22 @@ async def usb_dac_availability():
             try:
                 dac_devices = power.get_usb_devices(usb_id_dacs)
                 if len(list(dac_devices)) < 2:
+                    channel_on_after_reset = []
                     # mute all channels
                     for channel in range(1, num_channels+1):
                         if compose.read_config_value(f"GPIO_CH{channel}_MUTE") is not None:
                             gpio_mute = int(compose.read_config_value(f"GPIO_CH{channel}_MUTE"))
+                            is_on = await gpio.get(gpio_mute)
+                            if is_on:
+                                channel_on_after_reset.append(gpio_mute)
                             await gpio.set(gpio_mute, 0)
                     # power down PSU
+                    psu_on = 0
                     if compose.read_config_value("GPIO_PSU_RELAY") is not None:
                         gpio_relay = int(compose.read_config_value("GPIO_PSU_RELAY"))
+                        psu_on = await gpio.get(gpio_relay)
+                        if is_on:
+                            gpio_on_after_reset.append(gpio_relay)
                         await gpio.set(gpio_relay, 0)
                     # power down+up usb hub and reset
                     gpio_usb_power = int(compose.read_config_value("GPIO_USB_POWER"))
@@ -254,6 +262,17 @@ async def usb_dac_availability():
                     await asyncio.sleep(5)
                     await gpio.set(gpio_usb_power, 1)
                     power.reset_usb_device(usb_id_hub)
+                    await asyncio.sleep(5)
+                    # reset GPIOs to on as before reset
+                    if psu_on:
+                        gpio_relay = int(compose.read_config_value("GPIO_PSU_RELAY"))
+                        await gpio.set(gpio_on, 1)
+                        delay = 2
+                        if compose.read_config_value("PSU_POWER_ON_DELAY") is not None:
+                            delay = int(compose.read_config_value("PSU_POWER_ON_DELAY"))
+                        await asyncio.sleep(delay)
+                    for gpio_on in channel_on_after_reset:
+                        await gpio.set(gpio_on, 1)
 
                 await asyncio.sleep(sleep_interval)
 
