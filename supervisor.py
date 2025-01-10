@@ -628,7 +628,7 @@ def find_mqtt_service(self, zeroconf, service_type, name, state_change):
 async def set_up_gpios():
     if compose.read_config_value("GPIO_USB_POWER") is not None:
         board_number = int(compose.read_config_value("GPIO_USB_POWER"))
-        await gpio.init(board_number, "output")
+        await gpio.init(board_number, "output", False, 1)
     if compose.read_config_value("GPIO_PSU_RELAY") is not None:
         board_number = int(compose.read_config_value("GPIO_PSU_RELAY"))
         await gpio.init(board_number, "output")

@@ -39,7 +39,7 @@ _BOARD_MAP = {
 }
 
 # direction: input|output|as-is
-async def init(board_number, direction="output", active_low=False):
+async def init(board_number, direction="output", active_low=False, value=None):
     gpio = _BOARD_MAP[board_number]
     bus = await MessageBus(bus_type=BusType.SYSTEM).connect()
 
@@ -66,6 +66,8 @@ async def init(board_number, direction="output", active_low=False):
         line_config = [line_offsets, line_settings]
         line_configs = [line_config]
         output_values = []
+        if not value == None:
+            output_values = [value]
         request_line_config = [line_configs, output_values]
         # request options: a{sv}
         request_options = {
