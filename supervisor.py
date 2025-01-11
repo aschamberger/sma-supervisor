@@ -604,10 +604,8 @@ async def main():
                             print(f'Error: function {function} does not exist.')
 
         except aiomqtt.MqttError as error:
-            task1.cancel()
-            task2.cancel()
-            task3.cancel()
-            task4.cancel()
+            for task in background_tasks:
+                task.cancel()
             print(f'Error "{error}". Reconnecting in {reconnect_interval} seconds.')
             await asyncio.sleep(reconnect_interval)
 
