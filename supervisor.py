@@ -247,15 +247,14 @@ async def usb_dac_availability():
                             is_on = await gpio.get(gpio_mute)
                             if is_on:
                                 channel_on_after_reset.append(gpio_mute)
-                            await gpio.set(gpio_mute, 0)
+                                await gpio.set(gpio_mute, 0)
                     # power down PSU
                     psu_on = 0
                     if compose.read_config_value("GPIO_PSU_RELAY") is not None:
                         gpio_relay = int(compose.read_config_value("GPIO_PSU_RELAY"))
                         psu_on = await gpio.get(gpio_relay)
-                        if is_on:
-                            gpio_on_after_reset.append(gpio_relay)
-                        await gpio.set(gpio_relay, 0)
+                        if psu_on:
+                            await gpio.set(gpio_relay, 0)
                     # power down+up usb hub and reset
                     gpio_usb_power = int(compose.read_config_value("GPIO_USB_POWER"))
                     await gpio.set(gpio_usb_power, 0)
@@ -266,7 +265,7 @@ async def usb_dac_availability():
                     # reset GPIOs to on as before reset
                     if psu_on:
                         gpio_relay = int(compose.read_config_value("GPIO_PSU_RELAY"))
-                        await gpio.set(gpio_on, 1)
+                        await gpio.set(gpio_relay, 1)
                         delay = 2
                         if compose.read_config_value("PSU_POWER_ON_DELAY") is not None:
                             delay = int(compose.read_config_value("PSU_POWER_ON_DELAY"))
