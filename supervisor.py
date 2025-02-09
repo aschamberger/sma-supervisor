@@ -144,7 +144,7 @@ async def poll_lms_and_publish_player_names(client, lms_server):
                 # do explicit player name request from LMS to pick up eventual name change from LMS GUI
                 # pysqueezebox library caches the name on first connection in player object
                 result = await lms_server.async_query("name", "?", player=lms_players[channel-1])
-                if result != False:
+                if result != None:
                     player_name = result["_value"]
                     if names[channel-1] != player_name:
                         names[channel-1] = player_name
