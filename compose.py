@@ -7,6 +7,9 @@ import os
 import tempfile
 from dotenv.main import get_key, set_key
 
+from dbus_fast import BusType
+from dbus_fast.aio import MessageBus
+
 envFile = "/etc/opt/compose/.env"
 
 # created, restarting, running, removing, paused, exited and dead
@@ -199,16 +202,20 @@ async def image_prune():
     else:
         print("error")
 
-async def trigger_watchtower(session, port, token):
-    url = f"http://127.0.0.1:{port}/v1/update"
-    headers = {
-        "Authorization": f"Bearer {token}"
-    }
-    async with session.get(url, headers=headers) as response:
-        print(response.status)
-        print(await response.text())
-        
-    return None
+async def start_update_service(service_name):
+    bus = await MessageBus(bus_type=BusType.SYSTEM).connect()
+    introspection = await bus.introspect(
+        'org.freedesktop.systemd1',
+        '/org/freedesktop/systemd1'
+    )
+    proxy = bus.get_proxy_object(
+        'org.freedesktop.systemd1',
+        '/org/freedesktop/systemd1',
+        introspection
+    )
+    manager = proxy.get_interface('org.freedesktop.systemd1.Manager')
+    await manager.call_start_unit(service_name, 'replace')
+    bus.disconnect()
 
 def read_config_value(key):
     value = get_key(envFile, key)

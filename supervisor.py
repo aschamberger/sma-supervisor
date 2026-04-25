@@ -315,24 +315,18 @@ async def do_remote_backup(client, lms_server, payload, channel, eq_channel):
 async def do_update_supervisor(session, lms_server):
     is_local = await compose.is_local_build("supervisor")
     if not is_local:
-        if compose.read_config_value("WATCHTOWER_SUPERVISOR_PORT") is not None:
-            # power off all players to prevent speaker plopp
-            await power_off_lms_players(lms_server)
-            # trigger container update
-            port = compose.read_config_value("WATCHTOWER_SUPERVISOR_PORT")
-            token = compose.read_config_value("WATCHTOWER_API_TOKEN")
-            compose.trigger_watchtower(session, port, token)
+        # power off all players to prevent speaker plopp
+        await power_off_lms_players(lms_server)
+        # trigger container update
+        await compose.start_update_service("sma-update-supervisor.service")
 
 async def do_update_squeezelite(session, lms_server):
     is_local = await compose.is_local_build("squeezelite")
     if not is_local:
-        if compose.read_config_value("WATCHTOWER_SQUEEZELITE_PORT") is not None:
-            # power off all players to prevent speaker plopp
-            await power_off_lms_players(lms_server)
-            # trigger container update
-            port = compose.read_config_value("WATCHTOWER_SQUEEZELITE_PORT")
-            token = compose.read_config_value("WATCHTOWER_API_TOKEN")
-            compose.trigger_watchtower(session, port, token)
+        # power off all players to prevent speaker plopp
+        await power_off_lms_players(lms_server)
+        # trigger container update
+        await compose.start_update_service("sma-update-squeezelite.service")
 
 async def set_lms_host(client, lms_server, payload, channel, eq_channel):
     if (":" not in payload):

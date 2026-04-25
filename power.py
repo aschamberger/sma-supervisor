@@ -5,7 +5,7 @@
 #$ dbus-send --system --print-reply --dest=org.freedesktop.login1 /org/freedesktop/login1 "org.freedesktop.login1.Manager.PowerOff" boolean:true
 #$ dbus-send --system --print-reply --dest=org.freedesktop.login1 /org/freedesktop/login1 "org.freedesktop.login1.Manager.Reboot" boolean:true
 
-from dbus_fast import BusType, Message, MessageType, Variant
+from dbus_fast import BusType, Message
 from dbus_fast.aio import MessageBus
 
 import asyncio
