@@ -4,6 +4,7 @@ import asyncio
 import json
 import sys
 import time
+import socket
 
 import aiohttp
 import aiomqtt
@@ -24,7 +25,7 @@ from config import (
     subscriptions,
 )
 from pysqueezebox import Server as LmsServer
-from zeroconf import ServiceBrowser, Zeroconf
+from zeroconf import ServiceBrowser, Zeroconf, ServiceStateChange
 
 # publish entities for mqtt discovery
 async def publish_entities(client):
@@ -155,6 +156,7 @@ async def poll_lms_and_publish_player_names(client, lms_server):
 
         except asyncio.CancelledError as error:
             print(f'Error "{error}". LMS name polling cancelled.')
+            break
 
 async def publish_container_states(client):
     sleep_interval = 1 # seconds
@@ -193,6 +195,7 @@ async def publish_container_states(client):
 
         except asyncio.CancelledError as error:
             print(f'Error "{error}". Container state polling cancelled.')
+            break
 
 async def poll_registry_for_container_updates(client, session):
     sleep_interval = 6*60*60 # seconds
@@ -225,6 +228,7 @@ async def poll_registry_for_container_updates(client, session):
 
         except asyncio.CancelledError as error:
             print(f'Error "{error}". Container registry polling cancelled.')
+            break
 
 async def usb_dac_availability():
     sleep_interval = 60 # seconds
@@ -277,6 +281,7 @@ async def usb_dac_availability():
 
             except asyncio.CancelledError as error:
                 print(f'Error "{error}". USB DAC availability cancelled.')
+                break
 
 async def power_off_lms_players(lms_server):
     for channel in range(1, num_channels+1):
@@ -571,16 +576,17 @@ async def main():
 
                         # call desired function
                         function = f"{cmd}_{action}"
-                        if (globals()[function]):
+                        fn = globals().get(function)
+                        if fn:
                             # cancel all background tasks before restart/shutdown
                             if function == "do_restart" or function == "do_shutdown":
                                 for task in background_tasks:
                                     task.cancel()
                             # special handling of container update functions
                             if function == "do_update_squeezelite" or function == "do_update_supervisor":
-                                await globals()[function](session, lms_server)
+                                await fn(session, lms_server)
                             else:
-                                await globals()[function](client, lms_server, message.payload.decode(), channel, eq_channel)
+                                await fn(client, lms_server, message.payload.decode(), channel, eq_channel)
                             # cancel all tasks and reconnect
                             if function == "set_lms_host" or function == "set_mqtt_host":
                                 for task in background_tasks:
@@ -588,9 +594,8 @@ async def main():
                                 continue
                             if function == "do_update_squeezelite" or function == "do_update_supervisor":
                                 # restart version checking to publish latest version state
-                                coro = task3.get_coro()
                                 task3.cancel()
-                                task3 = asyncio.create_task(coro)
+                                task3 = asyncio.create_task(poll_registry_for_container_updates(client, session))
                                 background_tasks.add(task3)
                                 task3.add_done_callback(background_tasks.discard)
                         else:

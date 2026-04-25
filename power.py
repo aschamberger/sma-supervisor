@@ -22,6 +22,12 @@ async def power_off():
                 member='PowerOff',
                 signature='b',
                 body=[True]))
+    if reply.message_type == Message.Type.METHOD_RETURN:
+        print("Powering off...")
+    else:
+        print("Error powering off")
+
+    bus.disconnect()
 
 async def reboot():
     bus = await MessageBus(bus_type=BusType.SYSTEM).connect()
@@ -33,6 +39,12 @@ async def reboot():
                 member='Reboot',
                 signature='b',
                 body=[True]))
+    if reply.message_type == Message.Type.METHOD_RETURN:
+        print("Rebooting...")
+    else:
+        print("Error rebooting")
+
+    bus.disconnect()
 
 def get_usb_devices(usb_id):
     devices = finddev(find_all=True,idVendor=usb_id[0], idProduct=usb_id[1])
@@ -41,6 +53,9 @@ def get_usb_devices(usb_id):
 # https://gist.github.com/PaulFurtado/fce98aef890469f34d51
 def reset_usb_device(usb_id):
     dev = finddev(idVendor=usb_id[0], idProduct=usb_id[1])
+    if dev is None:
+        print("Device not found")
+        return
     dev.reset()
 
 async def main():

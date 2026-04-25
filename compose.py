@@ -12,15 +12,21 @@ from dbus_fast.aio import MessageBus
 
 envFile = "/etc/opt/compose/.env"
 
+async def run_subprocess(program):
+    p = await asyncio.create_subprocess_exec(*program,
+        stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
+    stdout, stderr = await p.communicate()
+    if p.returncode != 0:
+        print(f"Error running {program[0]}: {stderr.decode()}")
+        return None
+    return stdout.decode()
+
 # created, restarting, running, removing, paused, exited and dead
 async def get_container_status():
     program = [ 'docker', 'ps', '--format', '{{.Names}}:{{.State}}' ]
-    p = await asyncio.create_subprocess_exec(*program, stdout=asyncio.subprocess.PIPE)
-    stdout, stderr = await p.communicate()
-    if p.returncode == 0:
-        return extract_container_status(stdout.decode())
-    else:
-        print("error")
+    stdout = await run_subprocess(program)
+    if stdout is not None:
+        return extract_container_status(stdout)
 
 def extract_container_status(result):
     lines = result.split("\n")
@@ -37,20 +43,15 @@ async def up(profile, recreate=False, service=None):
         program.append('--force-recreate')
     if service:
         program.append(service)
-    p = await asyncio.create_subprocess_exec(*program, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
-    stdout, stderr = await p.communicate()
-    if p.returncode == 0:
-        print(stdout.decode())
-        print(stderr.decode())
-    else:
-        print("error")
+    stdout = await run_subprocess(program)
+    if stdout is not None:
+        print(stdout)
 
 async def docker_platform():
     program = [ 'uname', '-m' ]
-    p = await asyncio.create_subprocess_exec(*program, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
-    stdout, stderr = await p.communicate()
-    if p.returncode == 0:
-        platform = stdout.decode().strip()
+    stdout = await run_subprocess(program)
+    if stdout is not None:
+        platform = stdout.strip()
         if platform == "armv7l":
             return {
                 "architecture": "arm",
@@ -63,41 +64,29 @@ async def docker_platform():
                 "os": "linux"
             }
 
-        return None
-    else:
-        print("error")
-        return None
-
+    return None
+ 
 async def is_local_build(service):
-    program = [ 'docker', 'compose', '--env-file', envFile, 'config', '--format', 'json', service ]
-    p = await asyncio.create_subprocess_exec(*program, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
-    stdout, stderr = await p.communicate()
-    if p.returncode == 0:
-        result = json.loads(stdout.decode())
+    program = [ 'docker', 'compose', '--env-file', envFile, 'config', '--format', 'json', service ] 
+    stdout = await run_subprocess(program)
+    if stdout is not None:
+        result = json.loads(stdout)
         if "build" in result["services"][service]:
             return True
 
         return False
-    else:
-        print("error")
 
 async def image_from_compose_service(service):
     program = [ 'docker', 'compose', '--env-file', envFile, 'config', '--images', service ]
-    p = await asyncio.create_subprocess_exec(*program, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
-    stdout, stderr = await p.communicate()
-    if p.returncode == 0:
-        return stdout.decode().strip()
-    else:
-        print("error")
+    stdout = await run_subprocess(program)
+    if stdout is not None:
+        return stdout.strip()
 
 async def image_digest_local(image):
     program = [ 'docker', 'images', '-q', '--no-trunc', image ]
-    p = await asyncio.create_subprocess_exec(*program, stdout=asyncio.subprocess.PIPE)
-    stdout, stderr = await p.communicate()
-    if p.returncode == 0:
-        return stdout.decode().strip()
-    else:
-        print("error")
+    stdout = await run_subprocess(program)
+    if stdout is not None:
+        return stdout.strip()
 
 async def image_registry_auth(session, image):
     registry = "ghcr.io"
@@ -184,23 +173,15 @@ async def get_image_versions(session, base_url, token, local_digest, remote_dige
 
 async def image_pull(name):
     program = [ 'docker', 'pull', name ]
-    p = await asyncio.create_subprocess_exec(*program, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
-    stdout, stderr = await p.communicate()
-    if p.returncode == 0:
-        print(stdout.decode())
-        print(stderr.decode())
-    else:
-        print("error")
+    stdout = await run_subprocess(program)
+    if stdout is not None:
+        print(stdout)
 
 async def image_prune():
     program = [ 'docker', 'image', 'prune', '-f' ]
-    p = await asyncio.create_subprocess_exec(*program, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
-    stdout, stderr = await p.communicate()
-    if p.returncode == 0:
-        print(stdout.decode())
-        print(stderr.decode())
-    else:
-        print("error")
+    stdout = await run_subprocess(program)
+    if stdout is not None:
+        print(stdout)
 
 async def start_update_service(service_name):
     bus = await MessageBus(bus_type=BusType.SYSTEM).connect()
@@ -219,7 +200,7 @@ async def start_update_service(service_name):
 
 def read_config_value(key):
     value = get_key(envFile, key)
-    if len(value) == 0:
+    if not value:
         value = None
 
     return value
